@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>旅行规划小助手</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="leaflet/leaflet.css">
 <style>
 :root{
   --blue:#0071e3; --purple:#8e54e9; --shop:#00b894; --orange:#ff6b35;
@@ -125,6 +125,8 @@ a{color:inherit;}
 .map-wrap{height:340px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow); border:1px solid var(--line);}
 @media(min-width:920px){ .map-wrap{height:62vh;} }
 #map{width:100%; height:100%;}
+.map-fallback{position:absolute; left:0; right:0; bottom:0; z-index:400; margin:10px; padding:12px 14px; font-size:12.5px; line-height:1.6;
+  background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:12px; color:#374151; box-shadow:var(--shadow);}
 .leaflet-popup-content{font-size:13px;}
 
 /* 总览卡 */
@@ -355,7 +357,7 @@ a{color:inherit;}
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="leaflet/leaflet.js"></script>
 <script src="suzhou_data.js"></script>
 <script>
 /* ============ 数据 ============ */
@@ -580,10 +582,34 @@ function dayHTML(d, idx){
 }
 
 function renderMap(days){
+  // 兜底：若 Leaflet 未加载（如本地打开且 leaflet 目录缺失），给出明确提示而非空白
+  const mapEl = document.getElementById('map');
+  if(typeof L === 'undefined'){
+    if(mapEl) mapEl.innerHTML = '<div class="map-fallback">⚠️ 地图组件未能加载，请确认 leaflet/ 目录与本页面同处，或使用在线链接打开。</div>';
+    return;
+  }
   if(MAP) MAP.remove();
   MAP = L.map('map', {zoomControl:false, scrollWheelZoom:false});
-  L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7',
-    {subdomains:'1234', maxZoom:18}).addTo(MAP);
+
+  // 瓦片源：高德(主) → 腾讯(国内可达) → OSM(兜底)，任一加载失败自动切换下一级
+  const providers = [
+    ()=>L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7',
+        {subdomains:'1234', maxZoom:18, attribution:'高德地图'}),
+    ()=>L.tileLayer('https://rt{s}.map.gtimg.com/tile?z={z}&x={x}&y={y}&type=vector&style=0&version=275',
+        {subdomains:'0123', maxZoom:18, attribution:'腾讯地图'}),
+    ()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {subdomains:'abc', maxZoom:19, attribution:'OpenStreetMap'})
+  ];
+  let pi = 0, switched = false;
+  const addLayer = ()=>{
+    const layer = providers[pi]();
+    layer.on('tileerror', ()=>{
+      if(!switched && pi < providers.length-1){ switched = true; try{ MAP.removeLayer(layer); }catch(e){} pi++; addLayer(); }
+    });
+    layer.addTo(MAP);
+  };
+  addLayer();
+
   const all = [];
   days.forEach((d,di)=>{
     d.pois.forEach((p,pi)=>{
@@ -591,13 +617,25 @@ function renderMap(days){
         const c = (CAT[p.cat]||{}).c || '#0071e3';
         const m = L.marker([p.lat,p.lng], {icon:pinIcon(pi+1, c)}).addTo(MAP)
           .bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.desc||'')}`);
-        p._m = m; p._di = di; p._pi = pi;
+        p._m = m;
         all.push([p.lat,p.lng]);
       }
     });
   });
   if(all.length) MAP.fitBounds(all, {padding:[40,40]});
   [0,200,500,1000].forEach(t=>setTimeout(()=>{ try{ if(MAP) MAP.invalidateSize(); }catch(e){} }, t));
+
+  // 若 4 秒后仍无任何瓦片加载成功，给出提示（多为网络屏蔽瓦片服务器）
+  setTimeout(()=>{
+    try{
+      if(MAP && document.querySelectorAll('#map .leaflet-tile-loaded').length === 0){
+        const fb = document.createElement('div');
+        fb.className = 'map-fallback';
+        fb.innerHTML = '🗺️ 地图瓦片加载较慢或当前网络受限，可稍后重试，或点击下方「出行服务」使用高德/百度网页版地图。';
+        mapEl.appendChild(fb);
+      }
+    }catch(e){}
+  }, 4000);
 }
 
 function renderResult(p){
