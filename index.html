@@ -221,7 +221,7 @@ a{color:inherit;}
       <div class="logo">🧭</div>
       <div>
         <h1>旅行规划小助手</h1>
-        <div class="sub" style="margin:0;">填写出行信息，一键生成专属旅游规划</div>
+        <div class="sub" style="margin:0;">留空也可一键生成（默认展示苏州范例）· 填写后获得专属规划</div>
       </div>
     </div>
 
@@ -231,15 +231,15 @@ a{color:inherit;}
       <div class="g-box">
         <div class="field">
           <label>出发地</label>
-          <input type="text" id="f-from" placeholder="如：太原 / 北京 / 上海" value="太原">
+          <input type="text" id="f-from" placeholder="如：太原 / 北京 / 上海">
         </div>
         <div class="field">
           <label>途径地（若无请填「无」）</label>
-          <input type="text" id="f-via" placeholder="如：南京 / 无" value="无">
+          <input type="text" id="f-via" placeholder="如：南京 / 无">
         </div>
         <div class="field">
           <label>目的地 <span style="color:#e2452f">*</span></label>
-          <input type="text" id="f-dest" placeholder="如：苏州 / 杭州 / 成都" value="苏州">
+          <input type="text" id="f-dest" placeholder="如：苏州 / 杭州 / 成都">
         </div>
       </div>
     </div>
@@ -250,8 +250,8 @@ a{color:inherit;}
       <div class="g-box">
         <div class="field">
           <div class="row2">
-            <div><label>人数</label><input type="number" id="f-people" min="1" max="20" value="4"></div>
-            <div><label>天数（填日期自动算）</label><input type="number" id="f-days" min="1" max="15" value="4"></div>
+            <div><label>人数</label><input type="number" id="f-people" min="1" max="20" placeholder="2"></div>
+            <div><label>天数（填日期自动算）</label><input type="number" id="f-days" min="1" max="15" placeholder="4"></div>
           </div>
         </div>
         <div class="field">
@@ -268,7 +268,7 @@ a{color:inherit;}
     <div class="group">
       <div class="g-label">出行方式</div>
       <div class="radios">
-        <label class="radiolab on"><input type="radio" name="transport" value="飞机" checked>✈ 飞机</label>
+        <label class="radiolab"><input type="radio" name="transport" value="飞机">✈ 飞机</label>
         <label class="radiolab"><input type="radio" name="transport" value="高铁">🚄 高铁</label>
         <label class="radiolab"><input type="radio" name="transport" value="自驾">🚗 自驾</label>
         <label class="radiolab"><input type="radio" name="transport" value="自行规划">🗺 自行规划</label>
@@ -279,7 +279,7 @@ a{color:inherit;}
     <div class="group">
       <div class="g-label">行程偏好（可多选）</div>
       <div class="chips" id="prefChips">
-        <label class="chip"><input type="checkbox" value="景点打卡" checked>📍 景点打卡</label>
+        <label class="chip"><input type="checkbox" value="景点打卡">📍 景点打卡</label>
         <label class="chip"><input type="checkbox" value="休闲度假">🏖 休闲度假</label>
         <label class="chip"><input type="checkbox" value="享受当地美食">🍜 享受当地美食</label>
         <label class="chip"><input type="checkbox" value="自然风光">🌿 自然风光</label>
@@ -343,6 +343,8 @@ a{color:inherit;}
     <div class="infocard" id="r-transport"></div>
     <div class="infocard hotel" id="r-hotel"></div>
   </div>
+
+  <div class="services-wrap" id="r-services"></div>
 
   <div class="days" id="days"></div>
 
@@ -492,6 +494,43 @@ function defaultGeneric(f){
   return arr;
 }
 
+/* ============ 出行服务 · 实时查询（为分享链接提供信息支持） ============ */
+function buildServices(f, p){
+  const enc = s => encodeURIComponent(s||'');
+  const from = f.from || '出发地', dest = f.dest || '苏州';
+  const date = f.start || '';
+  // 取目的地首个有坐标的 POI，生成精准地图 marker 链接
+  let lat=null, lng=null;
+  if(p && p.matched && SZ.DAYS){
+    for(const d of SZ.DAYS){ for(const poi of d.pois){ if(poi.lat && poi.lng){ lat=poi.lat; lng=poi.lng; break; } } if(lat) break; }
+  }
+  const links = [
+    {icon:'🗺️', name:'高德地图', desc:`打开【${dest}】位置与导航`,
+      url: lat ? `https://uri.amap.com/marker?position=${lng},${lat}&name=${enc(dest)}&src=trip-planner&coordinate=gaode&callnative=0`
+               : `https://uri.amap.com/search?keyword=${enc(dest)}&src=trip-planner&coordinate=gaode&callnative=0`},
+    {icon:'🗺', name:'百度地图', desc:`查看【${dest}】周边与街景`,
+      url: lat ? `https://api.map.baidu.com/marker?location=${lat},${lng}&title=${enc(dest)}&content=${enc(dest)}&output=html&coord_type=gcj02&src=trip-planner`
+               : `https://map.baidu.com/search/${enc(dest)}`},
+    {icon:'🚄', name:'12306 火车票', desc:`查 ${from} → ${dest} 车次`,
+      url:`https://kyfw.12306.cn/otn/leftTicket/init?linktype=querys&fs=${enc(from)}&ts=${enc(dest)}&date=${date?enc(date):''}&flag=N,N,Y`},
+    {icon:'✈️', name:'航班查询', desc:`查 ${from} → ${dest} 机票`,
+      url:`https://flight.qunar.com/site/oneway_int.htm?searchDepartureAirport=${enc(from)}&searchArrivalAirport=${enc(dest)}&searchDepartureDate=${date?enc(date):''}`},
+    {icon:'🏨', name:'酒店预订', desc:`查【${dest}】酒店与价格`,
+      url:`https://hotels.ctrip.com/hotel/list?cityname=${enc(dest)}`},
+    {icon:'🌤', name:'天气查询', desc:`查【${dest}】近期天气`,
+      url:`https://www.baidu.com/s?wd=${enc(dest)}天气`}
+  ];
+  return `<div class="services-card">
+    <h3>🧰 出行服务 · 实时查询</h3>
+    <p class="sv-sub">以下链接已按你的行程预填，点击直达官方平台完成查询与预订（为分享链接提供信息支持）</p>
+    <div class="sv-list">${links.map(l=>`<a class="sv-item" href="${l.url}" target="_blank" rel="noopener">
+      <span class="sv-ic">${l.icon}</span>
+      <span class="sv-txt"><span class="sv-name">${esc(l.name)}</span><span class="sv-desc">${esc(l.desc)}</span></span>
+      <span class="sv-arrow">›</span>
+    </a>`).join('')}</div>
+  </div>`;
+}
+
 /* ============ 渲染 ============ */
 let MAP = null, plan = null;
 
@@ -593,10 +632,18 @@ function renderResult(p){
   // 住宿推荐卡
   $('#r-hotel').innerHTML = hotelHTML(p);
 
-  // 备注说明
-  const noteHtml = (p.prefs.includes('备注') && f.note)
-    ? `<div class="note-card">📝 <b>备注</b>：${esc(f.note)}</div>` : '';
-  $('#r-note').innerHTML = (p.matched ? noteHtml : noteHtml + `<div class="note-card" style="margin-top:10px;">ℹ️ 当前内置范例为「苏州」，已为你展示完整规划样式；其他城市的 POI 数据后续可继续补充。</div>`);
+  // 出行服务 · 实时查询（信息支持）
+  $('#r-services').innerHTML = buildServices(f, p);
+
+  // 备注 / 默认值提示 / 通用骨架提示
+  const notes = [];
+  if(p.prefs.includes('备注') && f.note)
+    notes.push(`<div class="note-card">📝 <b>备注</b>：${esc(f.note)}</div>`);
+  if(p.auto && p.auto.length)
+    notes.push(`<div class="note-card" style="margin-top:10px;">💡 你未填写部分信息，已自动套用示例（${esc(p.auto.join(' · '))}）。填写后点「重新规划」即可生成专属行程。</div>`);
+  if(!p.matched)
+    notes.push(`<div class="note-card" style="margin-top:10px;">ℹ️ 当前内置范例为「苏州」，已为你展示完整规划样式；其他城市的 POI 数据后续可继续补充。上方「出行服务」可直达高德 / 百度 / 12306 / 航班等平台完成查询与预订。</div>`);
+  $('#r-note').innerHTML = notes.join('');
 
   // 先显示容器：确保地图在「可见」状态下初始化，避免隐藏容器导致 fitBounds 尺寸为 0、地图空白
   $('#home').classList.add('hidden');
@@ -668,26 +715,32 @@ document.querySelectorAll('input[name=transport]').forEach(r=>{
 });
 
 function doGenerate(){
-  const from   = $('#f-from').value.trim() || '出发地';
-  const via    = $('#f-via').value.trim() || '无';
-  const dest   = $('#f-dest').value.trim();
-  const people = $('#f-people').value || 2;
+  const auto = [];
+  let from   = $('#f-from').value.trim();
+  let via    = $('#f-via').value.trim();
+  let dest   = $('#f-dest').value.trim();
+  let people = parseInt($('#f-people').value);
+  let days   = parseInt($('#f-days').value);
   const start  = $('#f-start').value;
   const end    = $('#f-end').value;
-  let days = parseInt($('#f-days').value) || 4;
-  // 填写出行 / 返程日期则自动计算天数（含首尾两天），覆盖手动天数
-  if(start && end){
-    const d1 = new Date(start), d2 = new Date(end);
-    if(d2 >= d1) days = Math.round((d2 - d1)/86400000) + 1;
-  }
-  const f = {
-    from, via, dest, people, days, start, end,
-    transport: (document.querySelector('input[name=transport]:checked')||{}).value || '飞机',
-    prefs: Array.from(document.querySelectorAll('#prefChips input:checked')).map(c=>c.value),
-    note: $('#f-note').value.trim()
-  };
-  if(!f.dest){ alert('请填写目的地'); $('#f-dest').focus(); return; }
-  renderResult(generatePlan(f));
+  const transport = (document.querySelector('input[name=transport]:checked')||{}).value || '';
+  let prefs   = Array.from(document.querySelectorAll('#prefChips input:checked')).map(c=>c.value);
+  const note  = $('#f-note').value.trim();
+
+  // 留空默认套用（支持「不填任何信息也能一键生成」）
+  if(!from){ from = '上海'; auto.push('上海出发'); }
+  if(!via)  via = '无';
+  if(!dest){ dest = '苏州'; auto.push('苏州范例'); }
+  if(!people || people < 1) people = 2;
+  if(!prefs.length){ prefs = ['景点打卡','享受当地美食','名胜古迹']; auto.push('热门偏好'); }
+  // 天数：填日期则自动算（含首尾），否则默认 4
+  if(start && end){ const d1=new Date(start), d2=new Date(end); if(d2>=d1) days = Math.round((d2-d1)/86400000)+1; }
+  if(!days || days < 1) days = 4;
+
+  const f = {from, via, dest, people, days, start, end, transport: transport || '飞机', prefs, note};
+  const p = generatePlan(f);
+  p.auto = auto;
+  renderResult(p);
 }
 $('#planForm').addEventListener('submit', e=>{ e.preventDefault(); doGenerate(); });
 $('#genBtn').addEventListener('click', e=>{ e.preventDefault(); doGenerate(); });
