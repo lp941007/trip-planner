@@ -159,6 +159,21 @@ a{color:inherit;}
 .flight-card h3{font-size:14px; margin-bottom:8px;}
 .flight-card .route{font-size:13px; color:#374151; margin-bottom:8px;}
 .note-card{background:linear-gradient(135deg,rgba(0,113,227,.08),rgba(142,84,233,.1)); border-radius:16px; padding:14px 16px; font-size:13px; color:#374151; margin-top:6px; line-height:1.6;}
+.field-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;}
+.hint{font-size:12px; color:var(--sub); margin:10px 2px 0; line-height:1.6;}
+.hint b{color:var(--blue);}
+/* 交通 / 住宿信息卡 */
+.info-row{max-width:1180px; margin:0 auto; padding:0 18px 8px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media(max-width:760px){ .info-row{grid-template-columns:1fr;} }
+.infocard{background:#fff; border-radius:18px; padding:16px 18px; box-shadow:var(--shadow); border:1px solid var(--line);}
+.infocard h3{font-size:15px; margin:0 0 10px; color:var(--ink);}
+.t-line{font-size:13px; color:#374151; line-height:1.7; margin:6px 0; padding-left:2px;}
+.hotel{border-left:4px solid var(--purple);}
+.hotel .hotel-item{padding:8px 0; border-bottom:1px dashed var(--line);}
+.hotel .hotel-item:last-child{border-bottom:none;}
+.hotel-name{font-weight:700; color:var(--ink); font-size:13.5px;}
+.hotel-star{font-size:12px; color:var(--sub); margin:2px 0;}
+.hotel-price{font-size:12.5px; color:#0a7d3e; font-weight:600;}
 .note-card b{color:var(--purple);}
 .foot{max-width:1180px; margin:0 auto; padding:0 18px 50px; text-align:center; color:var(--sub); font-size:12px; line-height:1.7;}
 .foot .regen{margin-top:10px;}
@@ -190,8 +205,20 @@ a{color:inherit;}
         <input type="number" id="f-people" min="1" max="20" value="4">
       </div>
       <div class="field">
-        <label>天数</label>
-        <input type="number" id="f-days" min="1" max="10" value="4">
+        <label>天数（也可填下日期自动算）</label>
+        <input type="number" id="f-days" min="1" max="15" value="4">
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>🛫 出行日期</label>
+          <input type="date" id="f-start">
+        </div>
+        <div class="field">
+          <label>🛬 返程日期</label>
+          <input type="date" id="f-end">
+        </div>
+      </div>
+      <p class="hint">填写出行 / 返程日期将<b>自动计算旅行天数</b>（覆盖上方手动天数）。</p>
       </div>
     </div>
 
@@ -265,6 +292,11 @@ a{color:inherit;}
     </div>
   </div>
 
+  <div class="info-row">
+    <div class="infocard" id="r-transport"></div>
+    <div class="infocard hotel" id="r-hotel"></div>
+  </div>
+
   <div class="days" id="days"></div>
 
   <div class="foot">
@@ -313,6 +345,32 @@ function transportSummary(t, f){
   if(t==='高铁') return `🚄 从【${f.from}】乘高铁赴【${f.dest}】${via}，高铁网络便捷，建议购二等座、提前抢票。`;
   if(t==='自驾') return `🚗 从【${f.from}】自驾赴【${f.dest}】${via}，沿途风光随心停，注意高速收费与景区停车。`;
   return `🗺 交通由你自行安排（飞机 / 高铁 / 自驾皆可），本规划已按 ${f.dest} 当地玩法预留衔接时间。`;
+}
+function transportDetail(f){
+  const via = (f.via && f.via!=='无') ? `经 ${f.via} ` : '';
+  let go, back, local;
+  if(f.transport==='飞机'){
+    go   = `✈ 去程：从【${f.from}】飞往【${f.dest}】${via}，建议提前预订机票（含机建燃油费 ¥150/段/人）。`;
+    back = `✈ 返程：从【${f.dest}】飞回【${f.from}】，预留充足值机与安检时间。`;
+  } else if(f.transport==='高铁'){
+    go   = `🚄 去程：从【${f.from}】乘高铁赴【${f.dest}】${via}，建议购二等座、高峰提前抢票。`;
+    back = `🚄 返程：从【${f.dest}】乘高铁返回【${f.from}】。`;
+  } else if(f.transport==='自驾'){
+    go   = `🚗 去程：从【${f.from}】自驾赴【${f.dest}】${via}，注意高速收费与景区停车。`;
+    back = `🚗 返程：从【${f.dest}】自驾返回【${f.from}】，返程前检查车况与油量。`;
+  } else {
+    go   = `🗺 去程：交通自行安排（飞机 / 高铁 / 自驾皆可），预留充足衔接时间。`;
+    back = `🗺 返程：按个人行程自行安排返回【${f.from}】。`;
+  }
+  local = `🚇 当地交通：市内地铁 + 打车结合；景区周边优先打车省时，远距离换乘用地铁，留意末班车时间。`;
+  return {go, back, local};
+}
+function hotelHTML(p){
+  if(p.matched && SZ.HOTELS && SZ.HOTELS.length){
+    const items = SZ.HOTELS.map(h=>`<div class="hotel-item"><div class="hotel-name">${h.rec?'⭐ ':''}${esc(h.name)}</div><div class="hotel-star">${esc(h.star||'')}</div><div class="hotel-price">${esc(h.price||'')}</div></div>`).join('');
+    return `<h3>🏨 住宿推荐</h3>${items}`;
+  }
+  return `<h3>🏨 住宿建议</h3><div class="t-line">推荐入住【${esc(p.f.dest)}】市区或景区附近酒店，便于游览与休息；旺季请提前预订并留意退改政策。</div>`;
 }
 
 function adjustDays(src, n){
@@ -453,7 +511,7 @@ function renderMap(days){
     });
   });
   if(all.length) MAP.fitBounds(all, {padding:[40,40]});
-  setTimeout(()=>MAP.invalidateSize(), 200);
+  [0,200,500,1000].forEach(t=>setTimeout(()=>{ try{ if(MAP) MAP.invalidateSize(); }catch(e){} }, t));
 }
 
 function renderResult(p){
@@ -462,7 +520,9 @@ function renderResult(p){
   $('#r-city').textContent = f.dest || SZ.city;
   $('#r-meta').textContent = `${p.days.length} 天 · ${p.budget.ppl} 人`;
   $('#r-title').textContent = `${f.dest} · ${p.days.length} 日游`;
-  $('#r-dates').textContent = p.matched ? '参考行程 · 已按你的偏好定制' : `通用骨架 · 目的地专属数据待补充（当前以范例演示）`;
+  $('#r-dates').textContent = (f.start && f.end)
+    ? `${f.start} → ${f.end} · 共 ${p.days.length} 天`
+    : (p.matched ? '参考行程 · 已按你的偏好定制' : `通用骨架 · 目的地专属数据待补充（当前以范例演示）`);
 
   // 标签
   const tags = [`🚦 ${f.transport}`, ...p.prefs.filter(x=>x!=='备注').map(x=>'· '+x)];
@@ -475,13 +535,26 @@ function renderResult(p){
     `机票交通 ¥${p.budget.flight.toLocaleString()}<br>住宿 ¥${p.budget.hotel.toLocaleString()}<br>`+
     `当地交通 ¥${p.budget.transit.toLocaleString()}<br>门票(估) ¥${p.budget.ticket.toLocaleString()}`;
 
-  // 交通说明卡
-  const noteHtml = `<div class="note-card">🚦 <b>交通方式</b>：${esc(p.transportText)}`+
-    (p.prefs.includes('备注') && f.note ? `<br>📝 <b>备注</b>：${esc(f.note)}` : '')+`</div>`;
-  $('#r-note').innerHTML = p.matched ? noteHtml : (noteHtml + `<div class="note-card" style="margin-top:10px;">ℹ️ 当前内置范例为「苏州」，已为你展示完整规划样式；其他城市的 POI 数据后续可继续补充。</div>`);
+  // 交通安排卡（显眼、具体：去程 / 返程 / 当地交通）
+  const td = transportDetail(f);
+  $('#r-transport').innerHTML =
+    `<h3>🚦 交通安排</h3>`+
+    `<div class="t-line">${esc(td.go)}</div>`+
+    `<div class="t-line">${esc(td.back)}</div>`+
+    `<div class="t-line">${esc(td.local)}</div>`;
 
-  // 地图
-  renderMap(p.days);
+  // 住宿推荐卡
+  $('#r-hotel').innerHTML = hotelHTML(p);
+
+  // 备注说明
+  const noteHtml = (p.prefs.includes('备注') && f.note)
+    ? `<div class="note-card">📝 <b>备注</b>：${esc(f.note)}</div>` : '';
+  $('#r-note').innerHTML = (p.matched ? noteHtml : noteHtml + `<div class="note-card" style="margin-top:10px;">ℹ️ 当前内置范例为「苏州」，已为你展示完整规划样式；其他城市的 POI 数据后续可继续补充。</div>`);
+
+  // 先显示容器：确保地图在「可见」状态下初始化，避免隐藏容器导致 fitBounds 尺寸为 0、地图空白
+  $('#home').classList.add('hidden');
+  $('#result').classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
 
   // 每日卡片
   $('#days').innerHTML = p.days.map(dayHTML).join('');
@@ -489,10 +562,8 @@ function renderResult(p){
   // 进度卡
   initPrep(p);
 
-  // 切换视图
-  $('#home').classList.add('hidden');
-  $('#result').classList.remove('hidden');
-  window.scrollTo({top:0, behavior:'smooth'});
+  // 地图最后渲染，且包 try/catch：即使地图失败也不影响行程 / 酒店 / 交通显示
+  try{ renderMap(p.days); }catch(e){ console.error('map render failed:', e); }
 }
 
 /* ============ 准备进度卡（纯本地） ============ */
@@ -540,12 +611,20 @@ $('#prefChips').addEventListener('change', e=>{
 });
 
 function doGenerate(){
+  const from   = $('#f-from').value.trim() || '出发地';
+  const via    = $('#f-via').value.trim() || '无';
+  const dest   = $('#f-dest').value.trim();
+  const people = $('#f-people').value || 2;
+  const start  = $('#f-start').value;
+  const end    = $('#f-end').value;
+  let days = parseInt($('#f-days').value) || 4;
+  // 填写出行 / 返程日期则自动计算天数（含首尾两天），覆盖手动天数
+  if(start && end){
+    const d1 = new Date(start), d2 = new Date(end);
+    if(d2 >= d1) days = Math.round((d2 - d1)/86400000) + 1;
+  }
   const f = {
-    from: $('#f-from').value.trim() || '出发地',
-    via:  $('#f-via').value.trim() || '无',
-    dest: $('#f-dest').value.trim(),
-    people: $('#f-people').value || 2,
-    days: $('#f-days').value || 4,
+    from, via, dest, people, days, start, end,
     transport: (document.querySelector('input[name=transport]:checked')||{}).value || '飞机',
     prefs: Array.from(document.querySelectorAll('#prefChips input:checked')).map(c=>c.value),
     note: $('#f-note').value.trim()
