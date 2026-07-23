@@ -656,6 +656,8 @@ function initPrep(p){
 $('#prefChips').addEventListener('change', e=>{
   if(e.target.matches('input[type=checkbox]')) e.target.closest('.chip').classList.toggle('on', e.target.checked);
 });
+// 初始化：让默认已勾选的 chips 也显示选中态
+document.querySelectorAll('#prefChips input:checked').forEach(c=>c.closest('.chip').classList.add('on'));
 
 // 出行方式：分段胶囊选中态（点击即高亮填充的胶囊）
 document.querySelectorAll('input[name=transport]').forEach(r=>{
