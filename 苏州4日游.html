@@ -519,7 +519,7 @@
     display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#6b7480;
     box-shadow:0 2px 6px rgba(0,0,0,.18);}
 
-  /* ===== 翻书画册（StPageFlip） ===== */
+  /* ===== 行程路书（StPageFlip） ===== */
   .book-fab{position:fixed; right:20px; bottom:22px; z-index:1400; display:flex; align-items:center; gap:8px;
     padding:12px 18px; border:none; border-radius:30px; cursor:pointer; font-family:inherit; font-size:14.5px; font-weight:700;
     color:#fff; background:linear-gradient(135deg,#0071e3,#8e54e9); box-shadow:0 10px 28px rgba(0,113,227,.38);
@@ -655,11 +655,11 @@
     </section>
   </div>
 
-  <!-- 翻书画册入口 + 全屏浮层 -->
-  <button class="book-fab" id="bookFab" type="button" aria-label="打开翻书画册"><span class="bf-ic">📖</span>翻书画册</button>
-  <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游画册">
+  <!-- 行程路书入口 + 全屏浮层 -->
+  <button class="book-fab" id="bookFab" type="button" aria-label="打开行程路书"><span class="bf-ic">📖</span>行程路书</button>
+  <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游行程路书">
     <div class="book-stage">
-      <div class="book-title-bar">📖 苏州 4 日游 · 翻页画册</div>
+      <div class="book-title-bar">📖 苏州 4 日游 · 行程路书</div>
       <button class="book-close" id="bookClose" type="button" aria-label="关闭">×</button>
       <button class="book-nav book-prev" id="bookPrev" type="button" aria-label="上一页">‹</button>
       <div id="flipBook"></div>
@@ -1441,7 +1441,7 @@
   window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT=setTimeout(refitMap, 250); });
   window.addEventListener('orientationchange', ()=>{ setTimeout(refitMap, 350); });
 
-  /* ===== 翻书画册（StPageFlip 真实卷角翻页） ===== */
+  /* ===== 行程路书（StPageFlip 真实卷角翻页） ===== */
   function firstImgOf(slug){ const a = POI_IMAGES[slug]; return (a && a[0]) || ''; }
   function dayHeroImg(day, fallbackSlug){
     for(const p of (day.pois||[])){ const s = NAME2SLUG[p.name]; if(s && POI_IMAGES[s] && POI_IMAGES[s][0]) return POI_IMAGES[s][0]; }
@@ -1459,11 +1459,11 @@
       <div class="pf-cv-body">
         <div class="pf-cv-badge">S U Z H O U</div>
         <div class="pf-cv-big">苏州</div>
-        <div class="pf-cv-sub">4 日深度游 · 旅行画册</div>
+        <div class="pf-cv-sub">4 日深度游 · 行程路书</div>
         <div class="pf-cv-line"></div>
         <div class="pf-cv-date">江南水乡 · 园林古城 · 9/26 – 9/29</div>
       </div>
-      <div class="pf-cv-foot">榆次出发 · 4 人同行 · 翻页开始你的江南之旅 →</div>
+      <div class="pf-cv-foot">榆次出发 · 4 人同行 · 翻开行程路书，开启江南之旅 →</div>
     </div></div>`);
 
     // 总览页
@@ -1540,7 +1540,7 @@
         <div class="pf-cv-sub" style="font-size:16px">4 天 · ${DAYS.reduce((s,d)=>s+d.pois.length,0)} 个打卡点 · 4 人 ¥${BUDGET.toLocaleString()}</div>
         <div class="pf-cv-date" style="margin-top:18px">愿你在苏州，得半日闲。</div>
       </div>
-      <div class="pf-cv-foot">苏州 4 日游画册 · 祝旅途愉快 🌿</div>
+      <div class="pf-cv-foot">苏州 4 日游行程路书 · 祝旅途愉快 🌿</div>
     </div></div>`);
 
     return pages;
