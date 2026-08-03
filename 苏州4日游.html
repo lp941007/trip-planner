@@ -509,37 +509,10 @@
   .ov-day,.w-card,.ov-fly{transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out);}
   .ov-day:hover,.w-card:hover,.ov-fly:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift);}
 
-  /* ===== 交互增强：预算计算器（Apple/Stripe 玻璃质感） ===== */
-  .calc{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 16px; margin:0 0 16px; box-shadow:var(--shadow);}
-  .calc-head{font-size:15px; font-weight:800; color:var(--ink); display:flex; align-items:baseline; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
-  .calc-head small{font-size:11.5px; font-weight:500; color:var(--sub);}
-  .calc-row{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;}
-  .calc-field{display:flex; flex-direction:column; gap:5px; min-width:120px;}
-  .calc-lbl{font-size:12px; font-weight:600; color:var(--sub);}
-  .calc-input{width:100%; font-size:16px; font-weight:700; color:var(--ink); padding:9px 12px; border:1.5px solid var(--line); border-radius:11px; background:#fbfbfd; transition:border-color .25s var(--ease-out), box-shadow .25s var(--ease-out); font-variant-numeric:tabular-nums;}
-  .calc-input:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(10,123,214,.15);}
-  .calc-input.invalid{border-color:#e2452f; box-shadow:0 0 0 3px rgba(226,69,47,.15);}
-  .calc-err{font-size:11px; color:#e2452f; font-weight:600; min-height:14px;}
-  .calc-cars{display:flex; gap:8px; flex-wrap:wrap;}
-  .car-opt{cursor:pointer; border:1.5px solid var(--line); background:#fbfbfd; border-radius:12px; padding:8px 12px; font-size:13px; font-weight:700; color:var(--ink); display:flex; flex-direction:column; align-items:flex-start; gap:2px; transition:border-color .25s var(--ease-out), background .25s var(--ease-out), transform .2s var(--ease-spring), box-shadow .25s var(--ease-out);}
-  .car-opt small{font-size:10.5px; font-weight:500; color:var(--sub);}
-  .car-opt:hover{transform:translateY(-2px);}
-  .car-opt.active{border-color:var(--blue); background:linear-gradient(135deg,#eaf3ff,#eafaf4); box-shadow:0 6px 16px rgba(10,123,214,.18);}
-  .calc-bars{margin-top:14px; display:flex; flex-direction:column; gap:9px;}
-  .cb-row{display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center;}
-  .cb-k{font-size:12.5px; color:var(--sub); font-weight:600;}
-  .cb-v{font-size:13px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; text-align:right;}
-  .cb-track{grid-column:1 / -1; height:8px; border-radius:999px; background:#eef0f4; overflow:hidden;}
-  .cb-fill{height:100%; border-radius:999px; background:linear-gradient(90deg,#0d5fb0,#0e8f86); width:0; transition:width .8s var(--ease-out);}
-  .calc-total{display:flex; justify-content:space-between; align-items:flex-end; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);}
-  .calc-tl{font-size:12px; color:var(--sub); font-weight:600;}
-  .calc-tv{font-size:22px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums;}
-  .calc-tp{font-size:15px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums;}
-  .calc-foot{margin-top:12px; display:flex; justify-content:flex-end;}
-  .calc-copy{cursor:pointer; border:1px solid var(--line); background:#fbfbfd; border-radius:11px; padding:8px 14px; font-size:13px; font-weight:700; color:var(--blue); transition:background .25s var(--ease-out), transform .2s var(--ease-spring);}
-  .calc-copy:hover{background:#eaf3ff; transform:translateY(-1px);}
-  .calc-copy:active{transform:scale(.96);}
-  @media (max-width:520px){ .calc-row{flex-direction:column; align-items:stretch;} .calc-cars{justify-content:space-between;} .car-opt{flex:1; align-items:center;} }
+  /* ===== 交互增强：分享链接按钮（原“预算计算器”的实用功能迁移） ===== */
+  .share-btn{display:inline-block; margin:12px auto 0; cursor:pointer; border:1px solid rgba(255,255,255,.55); background:rgba(255,255,255,.16); color:#fff; border-radius:999px; padding:7px 18px; font-size:13px; font-weight:700; transition:background .25s var(--ease-out), transform .2s var(--ease-spring);}
+  .share-btn:hover{background:rgba(255,255,255,.30); transform:translateY(-1px);}
+  .share-btn:active{transform:scale(.96);}
 
   /* ===== 交互增强：地图图例可点击筛选 ===== */
   .map-legend .lg{cursor:pointer; user-select:none; display:inline-flex; align-items:center; padding:2px 5px; border-radius:8px; transition:opacity .25s var(--ease-out), background .25s var(--ease-out), transform .2s var(--ease-spring);}
@@ -707,6 +680,7 @@
     <h1>苏州 · 4 日深度游</h1>
     <div class="sub">江南水乡 · 园林古城 · 榆次出发 · 9/26–9/29</div>
     <div class="budget-bar" id="budgetBar"></div>
+    <button class="share-btn" id="copyLink" type="button">📋 复制分享链接</button>
   </header>
 
   <nav class="tabs" id="tabs"></nav>
@@ -714,27 +688,6 @@
 
   <div class="wrap">
     <section class="left">
-      <div class="calc reveal-io" id="calcPanel">
-        <div class="calc-head">💰 预算计算器 <small>实时预估 · 随人数 / 车型变动</small></div>
-        <div class="calc-row">
-          <label class="calc-field">
-            <span class="calc-lbl">出行人数</span>
-            <input class="calc-input" id="calcPeople" type="number" min="1" max="20" step="1" inputmode="numeric" value="4" aria-describedby="calcPeopleErr">
-            <span class="calc-err" id="calcPeopleErr" role="alert"></span>
-          </label>
-          <div class="calc-cars" role="radiogroup" aria-label="车型">
-            <button class="car-opt" data-car="eco" type="button">🚗 经济型<small>¥1100 / 3天</small></button>
-            <button class="car-opt active" data-car="suv" type="button">🚙 SUV<small>¥1700 / 3天</small></button>
-            <button class="car-opt" data-car="mpv" type="button">🚐 MPV<small>¥2000 / 3天</small></button>
-          </div>
-        </div>
-        <div class="calc-bars" id="calcBars"></div>
-        <div class="calc-total">
-          <div><span class="calc-tl" id="calcTotalLbl">4人 总计</span><span class="calc-tv" id="calcTotal">¥0</span></div>
-          <div style="text-align:right"><span class="calc-tl">人均</span><span class="calc-tp" id="calcPer">¥0</span></div>
-        </div>
-        <div class="calc-foot"><button class="calc-copy" id="copyLink" type="button">📋 复制分享链接</button></div>
-      </div>
       <div id="overview" class="page"></div>
 
       <div id="dayView" class="page">
@@ -921,38 +874,9 @@
   document.getElementById('badges').innerHTML = `
     <div class="badge"><div class="v">${DAYS.length}</div><div class="k">天数 DAYS</div></div>
     <div class="badge"><div class="v">${totalPoi}</div><div class="k">POI 数</div></div>
-    <div class="badge"><div class="v" id="badgeBudget">¥0</div><div class="k" id="badgeBudgetK">总预算</div></div>`;
-  // 预算分项明细（随人数 / 车型实时计算；无刷新局部更新）
-  const CAR_BASE = { eco:1100, suv:1700, mpv:2000 };   // 神州租车 3 天车租（经济 / SUV / MPV）
-  const FLY_PP = 1820, HOTEL_TOTAL = HANTING_4 + MUUDU_HOTEL_4, RAIL_PP = 68, TICKET_PP = 295, OIL_FIX = 400;
-  const tripState = (()=>{ try{ return Object.assign({people:4,car:'suv'}, JSON.parse(localStorage.getItem('sz_calc')||'{}')); }catch(e){ return {people:4,car:'suv'}; } })();
-  function computeBudget(N, car){
-    N = Math.max(1, Math.min(20, N|0 || 4));
-    const flight = FLY_PP*N, hotel = HOTEL_TOTAL;
-    const transit = RAIL_PP*N + CAR_BASE[car] + OIL_FIX;
-    const ticket = TICKET_PP*N;
-    const total = flight + hotel + transit + ticket;
-    return {flight,hotel,transit,ticket,total, per:Math.round(total/N)};
-  }
-  function renderCalc(){
-    const N = tripState.people, car = tripState.car, b = computeBudget(N, car);
-    const max = Math.max(b.flight,b.hotel,b.transit,b.ticket,1);
-    const rows = [['✈️ 机票（往返）',b.flight],['🏨 住宿（2 间房）',b.hotel],['🚗 交通（高铁＋租车＋油费）',b.transit],['🎫 门票',b.ticket]];
-    const bars = rows.map(([k,v])=>`<div class="cb-row"><span class="cb-k">${k}</span><span class="cb-v">¥${v.toLocaleString()}</span><div class="cb-track"><div class="cb-fill" style="width:${(v/max*100).toFixed(1)}%"></div></div></div>`).join('');
-    const cp = document.getElementById('calcPanel');
-    if(cp){
-      cp.querySelector('#calcBars').innerHTML = bars;
-      cp.querySelector('#calcTotal').textContent = '¥'+b.total.toLocaleString();
-      cp.querySelector('#calcPer').textContent = '¥'+b.per.toLocaleString();
-      cp.querySelector('#calcTotalLbl').textContent = N+'人 总计';
-    }
-    const bb = document.getElementById('badgeBudget'); if(bb) bb.textContent = '¥'+b.total.toLocaleString();
-    const bk = document.getElementById('badgeBudgetK'); if(bk) bk.textContent = N+'人总预算';
-    const bd = document.getElementById('budgetBar');
-    if(bd) bd.innerHTML = `机票 <b>¥${b.flight.toLocaleString()}</b> ＋ 住宿 <b>¥${b.hotel.toLocaleString()}</b> ＋ 交通 <b>¥${b.transit.toLocaleString()}</b> ＋ 门票 <b>¥${b.ticket.toLocaleString()}</b> ＝ <b class="bb">${N}人 ¥${b.total.toLocaleString()}</b>（人均 ¥${b.per.toLocaleString()}）`;
-    try{ localStorage.setItem('sz_calc', JSON.stringify(tripState)); }catch(e){}
-  }
-  renderCalc();
+    <div class="badge"><div class="v" id="badgeBudget">¥13,070</div><div class="k" id="badgeBudgetK">4人总预算</div></div>`;
+  // 预算分项明细（4 人固定总览，静态展示；交互式计算器已移除）
+  document.getElementById('budgetBar').innerHTML = `机票 <b>¥7,280</b> ＋ 住宿 <b>¥2,240</b> ＋ 交通 <b>¥2,370</b> ＋ 门票 <b>¥1,180</b> ＝ <b class="bb">4人 ¥13,070</b>（人均 ¥3,268）`;
 
   /* ===== 地图初始化（高德免 Key 栅格瓦片）===== */
   const map = L.map('map',{zoomControl:false, attributionControl:false}).setView([31.30,120.62],12);
@@ -1765,26 +1689,6 @@
     refreshCatFilter();
   }
 
-  /* ===== 交互增强：预算计算器（实时校验 + 无刷新更新） ===== */
-  function initCalc(){
-    const cp=document.getElementById('calcPanel'); if(!cp) return;
-    const input=cp.querySelector('#calcPeople'), err=cp.querySelector('#calcPeopleErr');
-    const setErr=(m)=>{ if(err) err.textContent=m||''; if(input) input.classList.toggle('invalid', !!m); };
-    const apply=()=>{ let v=parseInt(input.value,10);
-      if(isNaN(v)){ setErr('请输入人数'); return; }
-      if(v<1||v>20){ setErr('人数需为 1–20 的整数'); v=Math.max(1,Math.min(20,v)); input.value=v; } else setErr('');
-      tripState.people=v; renderCalc(); };
-    if(input){ input.value=tripState.people;
-      input.addEventListener('input', apply);
-      input.addEventListener('blur', ()=>{ if(input.value===''||isNaN(parseInt(input.value,10))){ input.value=tripState.people; apply(); } }); }
-    cp.querySelectorAll('.car-opt').forEach(btn=>{
-      btn.classList.toggle('active', btn.dataset.car===tripState.car);
-      btn.addEventListener('click', ()=>{ tripState.car=btn.dataset.car;
-        cp.querySelectorAll('.car-opt').forEach(b=>b.classList.toggle('active', b===btn)); renderCalc(); });
-    });
-    renderCalc();
-  }
-
   /* ===== 交互增强：Toast 轻提示 ===== */
   function showToast(msg){
     let t=document.getElementById('toast');
@@ -1826,7 +1730,7 @@
   buildOverview();
   renderOverviewPage();
   /* 交互增强初始化 */
-  initCalc(); initLegend(); initShare(); initBackToTop(); initReveal();
+  initLegend(); initShare(); initBackToTop(); initReveal();
   </script>
 </body>
 </html>
