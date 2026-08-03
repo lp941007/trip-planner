@@ -570,13 +570,42 @@
   .bcard .bd-desc{font-size:13px; line-height:1.62; color:var(--mut); margin-bottom:8px;}
   .bcard .bd-meta{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--mut); border-top:1px solid var(--line); padding-top:8px;}
   .bcard .bd-meta b{color:var(--txt); font-weight:600; margin-right:3px;}
-  .bcard .bd-go{position:absolute; right:12px; top:12px; width:24px; height:24px; border-radius:50%; background:var(--accent);
-    color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; opacity:0; transform:scale(.7); transition:.25s;}
-  .bcard:hover .bd-go{opacity:1; transform:scale(1);}
+  .bcard .bd-go{position:absolute; right:12px; top:12px; width:28px; height:28px; border-radius:50%; background:var(--accent);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; line-height:1;
+    border:none; padding:0; cursor:pointer; box-shadow:0 4px 12px rgba(255,150,40,.32);
+    opacity:1; transform:scale(1); transition:transform .25s var(--ease-spring), box-shadow .25s var(--ease-out), background .25s;}
+  .bcard .bd-go:hover{transform:scale(1.12) rotate(-12deg); box-shadow:0 6px 16px rgba(255,150,40,.5);}
+  .bcard .bd-go:active{transform:scale(.92);}
+  .bcard .bd-go:focus-visible{outline:3px solid rgba(10,123,214,.45); outline-offset:2px;}
+  /* 备选卡片激活态：与地图标记联动（边框 + 阴影 + 微抬升） */
+  .bcard.active{border-color:var(--accent); border-style:solid; background:linear-gradient(135deg, rgba(255,179,102,.10), rgba(255,255,255,1));
+    box-shadow:0 10px 24px rgba(255,150,40,.28); transform:translateY(-3px);}
+  .bcard.active .bd-go{background:#0e8f66; box-shadow:0 6px 16px rgba(14,143,102,.42); animation:bcardPulse 1.2s var(--ease-out) 1;}
+  @keyframes bcardPulse{ 0%{box-shadow:0 6px 16px rgba(14,143,102,.42), 0 0 0 0 rgba(14,143,102,.55);} 70%{box-shadow:0 6px 16px rgba(14,143,102,.42), 0 0 0 14px rgba(14,143,102,0);} 100%{box-shadow:0 6px 16px rgba(14,143,102,.42), 0 0 0 0 rgba(14,143,102,0);} }
   /* 地图：备选针（空心环 + 备字） */
   .bk-pin{width:26px; height:26px; border-radius:50%; border:2.5px dashed #8a95a1; background:rgba(255,255,255,.9);
     display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#6b7480;
-    box-shadow:0 2px 6px rgba(0,0,0,.18);}
+    box-shadow:0 2px 6px rgba(0,0,0,.18); transition:transform .25s var(--ease-spring), border-color .25s, background .25s;}
+  .bk-pin.active{border-color:#0e8f66; border-style:solid; background:#0e8f66; color:#fff; transform:scale(1.18);}
+  /* 地图：访客位置（蓝点 + 双环脉冲） */
+  .me-pin{position:relative; width:18px; height:18px;}
+  .me-pin::before{content:''; position:absolute; inset:0; border-radius:50%; background:#0d6efd; border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,.28);}
+  .me-pin::after{content:''; position:absolute; left:50%; top:50%; width:18px; height:18px; border-radius:50%; background:rgba(13,110,253,.45);
+    transform:translate(-50%,-50%); animation:mePulse 1.8s var(--ease-out) infinite;}
+  @keyframes mePulse{ 0%{transform:translate(-50%,-50%) scale(1); opacity:.9;} 80%{transform:translate(-50%,-50%) scale(3.6); opacity:0;} 100%{transform:translate(-50%,-50%) scale(3.6); opacity:0;} }
+  .me-accuracy{stroke:#0d6efd; stroke-opacity:.22; fill:#0d6efd; fill-opacity:.10;}
+  /* 地图图例：定位按钮（与 lg 同节奏） */
+  .map-me{margin-left:auto; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:5px 10px;
+    border:1.5px solid var(--line); border-radius:999px; background:#fbfbfd; font-size:12px; font-weight:700; color:var(--ink);
+    transition:transform .2s var(--ease-spring), border-color .25s, background .25s, color .25s;}
+  .map-me:hover{transform:translateY(-1px); border-color:#0d6efd; color:#0d6efd;}
+  .map-me:active{transform:scale(.95);}
+  .map-me.loading{pointer-events:none; opacity:.7;}
+  .map-me.loading::after{content:''; width:10px; height:10px; border:2px solid #0d6efd; border-top-color:transparent; border-radius:50%; animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){
+    .bcard .bd-go, .bcard, .bk-pin, .me-pin::after, .map-me{transition:none !important; animation:none !important;}
+  }
 
   /* ===== 行程路书（StPageFlip） ===== */
   .book-fab{position:fixed; right:20px; bottom:22px; z-index:1400; display:flex; align-items:center; gap:8px;
@@ -712,6 +741,7 @@
         <span class="lg" data-cat="购物" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--shop)"></i>购物</span>
         <span class="lg" data-cat="交通" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--traffic)"></i>交通</span>
         <span class="map-count" id="mapCount">已显示全部</span>
+        <button class="map-me" id="mapMe" type="button" title="定位到我的当前位置" aria-label="定位到我的当前位置">📍 定位我</button>
       </div>
     </section>
   </div>
@@ -893,6 +923,8 @@
   })();
   const poiLayer = L.layerGroup().addTo(map);
   const hotelLayer = L.layerGroup().addTo(map);
+  const userLayer = L.layerGroup().addTo(map);  // 访客位置：独立 layer，不随 DAY 切换被清空
+  let userMarker = null, userAccuracy = null, userPos = null;  // [lat,lng] (GCJ-02)
   const markers = []; // {poi, marker}
   const catOn = {景点:true, 美食:true, 文化:true, 购物:true, 交通:true}; // 地图图例分类显隐状态
   const hotelMarkers = []; // 酒店标记引用，按 HOTELS 顺序
@@ -1008,20 +1040,31 @@
         day.backup.map((p,i)=>{
           const col = CAT[p.cat].c;
           const meta = Object.entries(p.meta).map(([k,v])=>`<span><b>${k}</b> ${v}</span>`).join('');
-          return `<div class="bcard" data-bk="${i}" style="animation-delay:${Math.min(i*70,420)}ms">
-            <span class="bd-go">→</span>
+          return `<div class="bcard" data-bk="${i}" data-bk-name="${p.name}" style="animation-delay:${Math.min(i*70,420)}ms">
+            <button class="bd-go" type="button" aria-label="在地图上定位 ${p.name}" title="在地图上定位">→</button>
             <div class="bd-row"><span class="bd-tag" style="background:${col}">${CAT[p.cat].i} ${p.cat}</span><span class="bd-name">${p.name}</span></div>
             <div class="bd-desc">${p.desc}</div>
             <div class="bd-meta">${meta}</div>
           </div>`;
         }).join('') + `</div></div>`;
       bk.querySelectorAll('.bcard').forEach(card=>{
-        card.addEventListener('click',()=>{
+        const focusOnMap = ()=>{
           const idx = +card.dataset.bk;
           const p = day.backup[idx];
+          if(!p) return;
+          // 1. 卡片 → 标记：激活联动
+          setActiveBackup(p.name, idx, backupMarkers);
+          // 2. 平滑飞抵 + 自动打开气泡
           map.flyTo([p.lat,p.lng], 14, {duration:1.0});
           setTimeout(()=>{ if(backupMarkers[idx]) backupMarkers[idx].openPopup(); }, 600);
-        });
+        };
+        // 整张卡片可点（与既有体验一致）
+        card.addEventListener('click', focusOnMap);
+        // 右箭头按钮：阻止冒泡避免重复触发，也便于无障碍/键盘用户
+        const goBtn = card.querySelector('.bd-go');
+        if(goBtn){
+          goBtn.addEventListener('click', (e)=>{ e.stopPropagation(); focusOnMap(); });
+        }
       });
     } else { bk.innerHTML = ''; }
     // 当日相关酒店卡片（DAY1 汉庭 / DAY2 木渎，其余天无）→ 仅保留与当日相关的信息卡片
@@ -1065,6 +1108,10 @@
         if(/太原/.test(p.name)) return;
         const m = L.marker([p.lat,p.lng],{icon:L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-12], html:`<div class="bk-pin">备</div>`})}).addTo(poiLayer);
         m.bindPopup(`<b>备选 · ${p.name}</b><br>${CAT[p.cat].i}${p.cat}`);
+        // 标记 → 卡片：双向联动
+        m.on('click',()=>{
+          if(typeof setActiveBackup==='function') setActiveBackup(p.name, i, backupMarkers);
+        });
         backupMarkers[i] = m;
         fitPts.push([p.lat,p.lng]);
       });
@@ -1689,6 +1736,107 @@
     refreshCatFilter();
   }
 
+  /* ===== 备选景点联动：标记 ↔ 卡片高亮同步 ===== */
+  // 供 backup 卡片 click / backup 标记 click 双向调用：清空旧高亮、设置新高亮（卡片 + 标记）
+  function setActiveBackup(name, idx, markersRef){
+    try{
+      document.querySelectorAll('#backupSlot .bcard.active').forEach(el=>el.classList.remove('active'));
+      document.querySelectorAll('.leaflet-marker-icon .bk-pin.active').forEach(el=>el.classList.remove('active'));
+      if(name == null) return;
+      const card = document.querySelector(`#backupSlot .bcard[data-bk-name="${CSS.escape(name)}"]`);
+      if(card){
+        card.classList.add('active');
+        card.setAttribute('aria-current','true');
+        // 把激活卡片滚入可见区域
+        try{ card.scrollIntoView({behavior:'smooth', block:'nearest'}); }catch(e){}
+      }
+      const m = (markersRef && markersRef[idx]) || null;
+      if(m){
+        const el = m.getElement && m.getElement();
+        const pin = el && el.querySelector('.bk-pin');
+        if(pin) pin.classList.add('active');
+      }
+    }catch(e){ /* noop */ }
+  }
+
+  /* ===== WGS-84 → GCJ-02 坐标转换（浏览器原生定位为 WGS-84，与高德瓦片 GCJ-02 存在 ~50-500m 偏移）===== */
+  function wgs2gcj(lat, lng){
+    // 简化版边界：仅在大陆区域做转换，海外直接返回
+    if(lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271) return [lat, lng];
+    const a = 6378245.0, ee = 0.00669342162296594323;
+    let dlat = _wgs2gcjLat(lng - 105.0, lat - 35.0);
+    let dlng = _wgs2gcjLng(lng - 105.0, lat - 35.0);
+    const radLat = lat / 180.0 * Math.PI;
+    let magic = Math.sin(radLat); magic = 1 - ee * magic * magic;
+    const sqrtMagic = Math.sqrt(magic);
+    dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
+    dlng = (dlng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
+    return [lat + dlat, lng + dlng];
+  }
+  function _wgs2gcjLat(x, y){
+    let ret = -100.0 + 2.0*x + 3.0*y + 0.2*y*y + 0.1*x*y + 0.2*Math.sqrt(Math.abs(x));
+    ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+    ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+    ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+    return ret;
+  }
+  function _wgs2gcjLng(x, y){
+    let ret = 300.0 + x + 2.0*y + 0.1*x*x + 0.1*x*y + 0.1*Math.sqrt(Math.abs(x));
+    ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+    ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+    ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+    return ret;
+  }
+
+  /* ===== 访客位置：geolocation → 蓝点 + 精度圈 + 飞抵 ===== */
+  function locateVisitor(opts){
+    opts = opts || {};
+    const silent = !!opts.silent;       // 页面加载时为 true：被拒也不打扰
+    const pan    = opts.pan !== false;  // 默认飞抵到访客位置
+    if(!('geolocation' in navigator)){
+      if(!silent && typeof showToast==='function') showToast('当前浏览器不支持定位');
+      return;
+    }
+    const btn = document.getElementById('mapMe');
+    if(btn) btn.classList.add('loading');
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const { latitude:wLat, longitude:wLng, accuracy } = pos.coords;
+      const [lat, lng] = wgs2gcj(wLat, wLng);   // WGS-84 → GCJ-02，与高德瓦片对齐
+      userPos = [lat, lng];
+      // 精度圈（米）
+      if(userAccuracy) try{ userLayer.removeLayer(userAccuracy); }catch(e){}
+      userAccuracy = L.circle(userPos, { radius: accuracy || 50, className:'me-accuracy', interactive:false }).addTo(userLayer);
+      // 蓝点
+      if(userMarker) try{ userLayer.removeLayer(userMarker); }catch(e){}
+      userMarker = L.marker(userPos, { icon: L.divIcon({ className:'', iconSize:[18,18], iconAnchor:[9,9], html:'<div class="me-pin" title="我的位置"></div>' }), zIndexOffset: 1000 }).addTo(userLayer);
+      userMarker.bindPopup(`<b>📍 我的位置</b><br>精度约 ${accuracy ? Math.round(accuracy) : '?'} 米`);
+      if(pan){
+        const z = Math.max(13, Math.min(16, accuracy > 5000 ? 12 : 14));
+        map.flyTo(userPos, z, { duration: 1.0 });
+      }
+      if(!silent && typeof showToast==='function') showToast('📍 已定位到你的当前位置');
+      if(btn){ btn.classList.remove('loading'); btn.textContent = '📍 已定位'; }
+    }, (err)=>{
+      const msg = ({
+        1:'定位被拒绝，请在浏览器中允许位置权限',
+        2:'暂时无法获取位置（设备无信号）',
+        3:'定位超时，请重试'
+      })[err.code] || '定位失败';
+      if(!silent && typeof showToast==='function') showToast(msg);
+      if(btn){ btn.classList.remove('loading'); }
+    }, { enableHighAccuracy:true, timeout:8000, maximumAge:60000 });
+  }
+  function initUserLocate(){
+    const btn = document.getElementById('mapMe');
+    if(btn){
+      btn.addEventListener('click', ()=>locateVisitor({ silent:false, pan:true }));
+    }
+    // 页面加载时静默尝试一次：拿到则显示蓝点，不打扰用户；失败则按钮仍是 "📍 定位我"
+    if('geolocation' in navigator){
+      setTimeout(()=>locateVisitor({ silent:true, pan:false }), 600);
+    }
+  }
+
   /* ===== 交互增强：Toast 轻提示 ===== */
   function showToast(msg){
     let t=document.getElementById('toast');
@@ -1730,7 +1878,7 @@
   buildOverview();
   renderOverviewPage();
   /* 交互增强初始化 */
-  initLegend(); initShare(); initBackToTop(); initReveal();
+  initLegend(); initShare(); initBackToTop(); initReveal(); initUserLocate();
   </script>
 </body>
 </html>
