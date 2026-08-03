@@ -509,6 +509,61 @@
   .ov-day,.w-card,.ov-fly{transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out);}
   .ov-day:hover,.w-card:hover,.ov-fly:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift);}
 
+  /* ===== 交互增强：预算计算器（Apple/Stripe 玻璃质感） ===== */
+  .calc{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 16px; margin:0 0 16px; box-shadow:var(--shadow);}
+  .calc-head{font-size:15px; font-weight:800; color:var(--ink); display:flex; align-items:baseline; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+  .calc-head small{font-size:11.5px; font-weight:500; color:var(--sub);}
+  .calc-row{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;}
+  .calc-field{display:flex; flex-direction:column; gap:5px; min-width:120px;}
+  .calc-lbl{font-size:12px; font-weight:600; color:var(--sub);}
+  .calc-input{width:100%; font-size:16px; font-weight:700; color:var(--ink); padding:9px 12px; border:1.5px solid var(--line); border-radius:11px; background:#fbfbfd; transition:border-color .25s var(--ease-out), box-shadow .25s var(--ease-out); font-variant-numeric:tabular-nums;}
+  .calc-input:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(10,123,214,.15);}
+  .calc-input.invalid{border-color:#e2452f; box-shadow:0 0 0 3px rgba(226,69,47,.15);}
+  .calc-err{font-size:11px; color:#e2452f; font-weight:600; min-height:14px;}
+  .calc-cars{display:flex; gap:8px; flex-wrap:wrap;}
+  .car-opt{cursor:pointer; border:1.5px solid var(--line); background:#fbfbfd; border-radius:12px; padding:8px 12px; font-size:13px; font-weight:700; color:var(--ink); display:flex; flex-direction:column; align-items:flex-start; gap:2px; transition:border-color .25s var(--ease-out), background .25s var(--ease-out), transform .2s var(--ease-spring), box-shadow .25s var(--ease-out);}
+  .car-opt small{font-size:10.5px; font-weight:500; color:var(--sub);}
+  .car-opt:hover{transform:translateY(-2px);}
+  .car-opt.active{border-color:var(--blue); background:linear-gradient(135deg,#eaf3ff,#eafaf4); box-shadow:0 6px 16px rgba(10,123,214,.18);}
+  .calc-bars{margin-top:14px; display:flex; flex-direction:column; gap:9px;}
+  .cb-row{display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center;}
+  .cb-k{font-size:12.5px; color:var(--sub); font-weight:600;}
+  .cb-v{font-size:13px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; text-align:right;}
+  .cb-track{grid-column:1 / -1; height:8px; border-radius:999px; background:#eef0f4; overflow:hidden;}
+  .cb-fill{height:100%; border-radius:999px; background:linear-gradient(90deg,#0d5fb0,#0e8f86); width:0; transition:width .8s var(--ease-out);}
+  .calc-total{display:flex; justify-content:space-between; align-items:flex-end; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);}
+  .calc-tl{font-size:12px; color:var(--sub); font-weight:600;}
+  .calc-tv{font-size:22px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums;}
+  .calc-tp{font-size:15px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .calc-foot{margin-top:12px; display:flex; justify-content:flex-end;}
+  .calc-copy{cursor:pointer; border:1px solid var(--line); background:#fbfbfd; border-radius:11px; padding:8px 14px; font-size:13px; font-weight:700; color:var(--blue); transition:background .25s var(--ease-out), transform .2s var(--ease-spring);}
+  .calc-copy:hover{background:#eaf3ff; transform:translateY(-1px);}
+  .calc-copy:active{transform:scale(.96);}
+  @media (max-width:520px){ .calc-row{flex-direction:column; align-items:stretch;} .calc-cars{justify-content:space-between;} .car-opt{flex:1; align-items:center;} }
+
+  /* ===== 交互增强：地图图例可点击筛选 ===== */
+  .map-legend .lg{cursor:pointer; user-select:none; display:inline-flex; align-items:center; padding:2px 5px; border-radius:8px; transition:opacity .25s var(--ease-out), background .25s var(--ease-out), transform .2s var(--ease-spring);}
+  .map-legend .lg:hover{background:rgba(0,0,0,.05);}
+  .map-legend .lg:active{transform:scale(.94);}
+  .map-legend .lg.off{opacity:.38; text-decoration:line-through;}
+  .map-legend .map-count{margin-left:2px; font-size:11px; color:var(--sub); font-weight:600; white-space:nowrap;}
+
+  /* ===== 交互增强：滚动进场（IntersectionObserver） ===== */
+  .reveal-io{opacity:0; transform:translateY(20px); transition:opacity .6s var(--ease-out), transform .6s var(--ease-out);}
+  .reveal-io.in{opacity:1; transform:none;}
+
+  /* ===== 交互增强：Toast 轻提示 ===== */
+  .toast{position:fixed; left:50%; bottom:32px; transform:translate(-50%, 18px); z-index:2000; background:rgba(29,29,31,.94); color:#fff; font-size:13.5px; font-weight:600; padding:11px 18px; border-radius:14px; box-shadow:0 12px 34px rgba(0,0,0,.32); opacity:0; pointer-events:none; transition:opacity .3s var(--ease-out), transform .35s var(--ease-spring); max-width:86vw; text-align:center;}
+  .toast.show{opacity:1; transform:translate(-50%,0);}
+  @media (max-width:520px){ .toast{bottom:20px; font-size:12.5px;} }
+
+  /* ===== 交互增强：返回顶部 FAB ===== */
+  .to-top{position:fixed; right:20px; bottom:84px; z-index:1400; width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; font-size:20px; color:#fff; background:linear-gradient(135deg,#0d5fb0,#0e8f86); box-shadow:0 10px 28px rgba(13,95,176,.4); display:flex; align-items:center; justify-content:center; opacity:0; transform:translateY(12px) scale(.8); pointer-events:none; transition:opacity .35s var(--ease-out), transform .35s var(--ease-spring);}
+  .to-top.show{opacity:1; transform:none; pointer-events:auto;}
+  .to-top:hover{transform:translateY(-2px) scale(1.05);}
+  .to-top:active{transform:scale(.92);}
+  @media (max-width:520px){ .to-top{right:14px; bottom:78px; width:42px; height:42px;} }
+
   /* 尊重系统“减少动态效果”偏好 */
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important;
@@ -659,6 +714,27 @@
 
   <div class="wrap">
     <section class="left">
+      <div class="calc reveal-io" id="calcPanel">
+        <div class="calc-head">💰 预算计算器 <small>实时预估 · 随人数 / 车型变动</small></div>
+        <div class="calc-row">
+          <label class="calc-field">
+            <span class="calc-lbl">出行人数</span>
+            <input class="calc-input" id="calcPeople" type="number" min="1" max="20" step="1" inputmode="numeric" value="4" aria-describedby="calcPeopleErr">
+            <span class="calc-err" id="calcPeopleErr" role="alert"></span>
+          </label>
+          <div class="calc-cars" role="radiogroup" aria-label="车型">
+            <button class="car-opt" data-car="eco" type="button">🚗 经济型<small>¥1100 / 3天</small></button>
+            <button class="car-opt active" data-car="suv" type="button">🚙 SUV<small>¥1700 / 3天</small></button>
+            <button class="car-opt" data-car="mpv" type="button">🚐 MPV<small>¥2000 / 3天</small></button>
+          </div>
+        </div>
+        <div class="calc-bars" id="calcBars"></div>
+        <div class="calc-total">
+          <div><span class="calc-tl" id="calcTotalLbl">4人 总计</span><span class="calc-tv" id="calcTotal">¥0</span></div>
+          <div style="text-align:right"><span class="calc-tl">人均</span><span class="calc-tp" id="calcPer">¥0</span></div>
+        </div>
+        <div class="calc-foot"><button class="calc-copy" id="copyLink" type="button">📋 复制分享链接</button></div>
+      </div>
       <div id="overview" class="page"></div>
 
       <div id="dayView" class="page">
@@ -676,18 +752,20 @@
       <div id="map"></div>
       <div class="map-hint">👆 点行程卡片，地图定位该点</div>
       <div class="map-title" id="mapTitle"></div>
-      <div class="map-legend">
-        <span><i style="background:var(--blue)"></i>景点</span>
-        <span><i style="background:var(--food)"></i>美食</span>
-        <span><i style="background:var(--culture)"></i>文化</span>
-        <span><i style="background:var(--shop)"></i>购物</span>
-        <span><i style="background:var(--traffic)"></i>交通</span>
+      <div class="map-legend" id="mapLegend">
+        <span class="lg" data-cat="景点" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--blue)"></i>景点</span>
+        <span class="lg" data-cat="美食" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--food)"></i>美食</span>
+        <span class="lg" data-cat="文化" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--culture)"></i>文化</span>
+        <span class="lg" data-cat="购物" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--shop)"></i>购物</span>
+        <span class="lg" data-cat="交通" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--traffic)"></i>交通</span>
+        <span class="map-count" id="mapCount">已显示全部</span>
       </div>
     </section>
   </div>
 
   <!-- 行程路书入口 + 全屏浮层 -->
   <button class="book-fab" id="bookFab" type="button" aria-label="打开行程路书"><span class="bf-ic">📖</span>行程路书</button>
+  <button class="to-top" id="toTop" type="button" aria-label="返回顶部">↑</button>
   <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游行程路书">
     <div class="book-stage">
       <div class="book-title-bar">📖 苏州 4 日游 · 行程路书</div>
@@ -843,11 +921,38 @@
   document.getElementById('badges').innerHTML = `
     <div class="badge"><div class="v">${DAYS.length}</div><div class="k">天数 DAYS</div></div>
     <div class="badge"><div class="v">${totalPoi}</div><div class="k">POI 数</div></div>
-    <div class="badge"><div class="v">¥${BUDGET.toLocaleString()}</div><div class="k">4人总预算</div></div>`;
-  // 预算分项明细（自动计算；含往返机票 + 两段酒店）
-  document.getElementById('budgetBar').innerHTML =
-    `去程 <b>HO132 ¥${FLIGHT_4}</b> ＋ 汉庭虹桥 <b>¥${HANTING_4}</b> ＋ 木渎酒店 <b>¥${MUUDU_HOTEL_4}</b> ＋ 返程 <b>MU2407 ¥${RETURN_4}</b> ＋ 交通 <b>¥${TRANSIT_4}</b> ＋ 门票(估) <b>¥${LOCAL_4}</b>` +
-    ` ＝ <b class="bb">4人 ¥${BUDGET.toLocaleString()}</b>（人均¥${(BUDGET/4).toLocaleString()}）`;
+    <div class="badge"><div class="v" id="badgeBudget">¥0</div><div class="k" id="badgeBudgetK">总预算</div></div>`;
+  // 预算分项明细（随人数 / 车型实时计算；无刷新局部更新）
+  const CAR_BASE = { eco:1100, suv:1700, mpv:2000 };   // 神州租车 3 天车租（经济 / SUV / MPV）
+  const FLY_PP = 1820, HOTEL_TOTAL = HANTING_4 + MUUDU_HOTEL_4, RAIL_PP = 68, TICKET_PP = 295, OIL_FIX = 400;
+  const tripState = (()=>{ try{ return Object.assign({people:4,car:'suv'}, JSON.parse(localStorage.getItem('sz_calc')||'{}')); }catch(e){ return {people:4,car:'suv'}; } })();
+  function computeBudget(N, car){
+    N = Math.max(1, Math.min(20, N|0 || 4));
+    const flight = FLY_PP*N, hotel = HOTEL_TOTAL;
+    const transit = RAIL_PP*N + CAR_BASE[car] + OIL_FIX;
+    const ticket = TICKET_PP*N;
+    const total = flight + hotel + transit + ticket;
+    return {flight,hotel,transit,ticket,total, per:Math.round(total/N)};
+  }
+  function renderCalc(){
+    const N = tripState.people, car = tripState.car, b = computeBudget(N, car);
+    const max = Math.max(b.flight,b.hotel,b.transit,b.ticket,1);
+    const rows = [['✈️ 机票（往返）',b.flight],['🏨 住宿（2 间房）',b.hotel],['🚗 交通（高铁＋租车＋油费）',b.transit],['🎫 门票',b.ticket]];
+    const bars = rows.map(([k,v])=>`<div class="cb-row"><span class="cb-k">${k}</span><span class="cb-v">¥${v.toLocaleString()}</span><div class="cb-track"><div class="cb-fill" style="width:${(v/max*100).toFixed(1)}%"></div></div></div>`).join('');
+    const cp = document.getElementById('calcPanel');
+    if(cp){
+      cp.querySelector('#calcBars').innerHTML = bars;
+      cp.querySelector('#calcTotal').textContent = '¥'+b.total.toLocaleString();
+      cp.querySelector('#calcPer').textContent = '¥'+b.per.toLocaleString();
+      cp.querySelector('#calcTotalLbl').textContent = N+'人 总计';
+    }
+    const bb = document.getElementById('badgeBudget'); if(bb) bb.textContent = '¥'+b.total.toLocaleString();
+    const bk = document.getElementById('badgeBudgetK'); if(bk) bk.textContent = N+'人总预算';
+    const bd = document.getElementById('budgetBar');
+    if(bd) bd.innerHTML = `机票 <b>¥${b.flight.toLocaleString()}</b> ＋ 住宿 <b>¥${b.hotel.toLocaleString()}</b> ＋ 交通 <b>¥${b.transit.toLocaleString()}</b> ＋ 门票 <b>¥${b.ticket.toLocaleString()}</b> ＝ <b class="bb">${N}人 ¥${b.total.toLocaleString()}</b>（人均 ¥${b.per.toLocaleString()}）`;
+    try{ localStorage.setItem('sz_calc', JSON.stringify(tripState)); }catch(e){}
+  }
+  renderCalc();
 
   /* ===== 地图初始化（高德免 Key 栅格瓦片）===== */
   const map = L.map('map',{zoomControl:false, attributionControl:false}).setView([31.30,120.62],12);
@@ -865,6 +970,7 @@
   const poiLayer = L.layerGroup().addTo(map);
   const hotelLayer = L.layerGroup().addTo(map);
   const markers = []; // {poi, marker}
+  const catOn = {景点:true, 美食:true, 文化:true, 购物:true, 交通:true}; // 地图图例分类显隐状态
   const hotelMarkers = []; // 酒店标记引用，按 HOTELS 顺序
 
   /* 全程住宿（两段）：汉庭虹桥(9/26) + 木渎悦华(9/27–29) */
@@ -945,7 +1051,7 @@
     tl.innerHTML = day.pois.map((p,i)=>{
       const col = CAT[p.cat].c;
       const meta = Object.entries(p.meta).map(([k,v])=>`<span><b>${k}</b> ${v}</span>`).join('');
-      return `<div class="card enter" data-idx="${i}" style="animation-delay:${Math.min(i*65,480)}ms">
+      return `<div class="card reveal-io" data-idx="${i}">
         ${(()=>{ const slug = NAME2SLUG[p.name]; const arr = (slug && POI_IMAGES[slug]) || []; if(!arr.length) return p.img ? `<img class="poi-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">` : ''; return `<div class="poi-gallery"><div class="pg-track">${arr.map((s,i)=>`<img class="pg-img${i===0?' on':''}" src="${s}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>${arr.length>1?`<button class="pg-nav pg-prev" type="button" aria-label="上一张">‹</button><button class="pg-nav pg-next" type="button" aria-label="下一张">›</button><div class="pg-count"><span class="pg-cur">1</span>/${arr.length}</div><div class="pg-dots">${arr.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>`:''}</div>`; })()}
         <span class="dot" style="background:${col}"></span>
         <div class="row1">
@@ -1053,6 +1159,7 @@
     [document.querySelector('.dayhead')].forEach(el=>{
       if(!el) return; el.classList.remove('reveal'); void el.offsetWidth; el.classList.add('reveal');
     });
+    refreshCatFilter(); initReveal();
   }
 
   /* 全程规划页（独立的“总览”页，置于 DAY1 之前）：展示往返交通 + 全程住宿 + 旅行规划，地图标出两家酒店 */
@@ -1087,6 +1194,7 @@
     });
     HOTELS.forEach(h=>pts.push([h.lat,h.lng]));
     if(pts.length) map.fitBounds(pts,{padding:[60,60]});
+    refreshCatFilter(); initReveal();
   }
 
   function flyToPoi(idx){
@@ -1638,10 +1746,87 @@
     window.addEventListener('resize', ()=>{ if(pageFlip && document.getElementById('bookOverlay').classList.contains('on')){ try{ pageFlip.update(); }catch(e){} } });
   })();
 
+  /* ===== 交互增强：地图图例分类筛选 ===== */
+  function refreshCatFilter(){
+    let n=0;
+    markers.forEach(o=>{ if(!o||!o.poi) return; const on=catOn[o.poi.cat];
+      if(on){ if(!poiLayer.hasLayer(o.marker)) o.marker.addTo(poiLayer); n++; }
+      else { if(poiLayer.hasLayer(o.marker)) poiLayer.removeLayer(o.marker); } });
+    const c=document.getElementById('mapCount'); if(c) c.textContent='已显示 '+n+' 个行程点';
+  }
+  function initLegend(){
+    const lg=document.getElementById('mapLegend'); if(!lg) return;
+    lg.querySelectorAll('.lg').forEach(el=>{
+      const sync=()=>{ el.classList.toggle('off', !catOn[el.dataset.cat]); el.setAttribute('aria-pressed', String(catOn[el.dataset.cat])); };
+      sync();
+      el.addEventListener('click', ()=>{ const cat=el.dataset.cat; catOn[cat]=!catOn[cat]; sync(); refreshCatFilter(); });
+      el.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); el.click(); } });
+    });
+    refreshCatFilter();
+  }
+
+  /* ===== 交互增强：预算计算器（实时校验 + 无刷新更新） ===== */
+  function initCalc(){
+    const cp=document.getElementById('calcPanel'); if(!cp) return;
+    const input=cp.querySelector('#calcPeople'), err=cp.querySelector('#calcPeopleErr');
+    const setErr=(m)=>{ if(err) err.textContent=m||''; if(input) input.classList.toggle('invalid', !!m); };
+    const apply=()=>{ let v=parseInt(input.value,10);
+      if(isNaN(v)){ setErr('请输入人数'); return; }
+      if(v<1||v>20){ setErr('人数需为 1–20 的整数'); v=Math.max(1,Math.min(20,v)); input.value=v; } else setErr('');
+      tripState.people=v; renderCalc(); };
+    if(input){ input.value=tripState.people;
+      input.addEventListener('input', apply);
+      input.addEventListener('blur', ()=>{ if(input.value===''||isNaN(parseInt(input.value,10))){ input.value=tripState.people; apply(); } }); }
+    cp.querySelectorAll('.car-opt').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.car===tripState.car);
+      btn.addEventListener('click', ()=>{ tripState.car=btn.dataset.car;
+        cp.querySelectorAll('.car-opt').forEach(b=>b.classList.toggle('active', b===btn)); renderCalc(); });
+    });
+    renderCalc();
+  }
+
+  /* ===== 交互增强：Toast 轻提示 ===== */
+  function showToast(msg){
+    let t=document.getElementById('toast');
+    if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+    t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  /* ===== 交互增强：复制分享链接 ===== */
+  function initShare(){
+    const btn=document.getElementById('copyLink'); if(!btn) return;
+    btn.addEventListener('click', async ()=>{
+      const url=location.href;
+      try{ await navigator.clipboard.writeText(url); showToast('🔗 分享链接已复制'); }
+      catch(e){ try{ const ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('🔗 分享链接已复制'); }catch(err){ showToast('复制失败，请手动复制地址栏'); } }
+    });
+  }
+
+  /* ===== 交互增强：返回顶部 ===== */
+  function initBackToTop(){
+    const b=document.getElementById('toTop'); if(!b) return;
+    const onScroll=()=>{ const top = isCompact() ? window.scrollY : (document.querySelector('.left')?.scrollTop||0); b.classList.toggle('show', top>420); };
+    b.addEventListener('click', ()=>scrollToTop());
+    window.addEventListener('scroll', onScroll, {passive:true});
+    const l=document.querySelector('.left'); if(l) l.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+  }
+
+  /* ===== 交互增强：滚动进场（IntersectionObserver） ===== */
+  let _io;
+  function initReveal(){
+    const nodes=document.querySelectorAll('.reveal-io:not(.in)');
+    if(!('IntersectionObserver' in window)){ nodes.forEach(n=>n.classList.add('in')); return; }
+    if(!_io){ _io=new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); _io.unobserve(e.target); } }); }, {threshold:0.08, rootMargin:'0px 0px -8% 0px'}); }
+    nodes.forEach(n=>_io.observe(n));
+  }
+
   /* init：默认进入“全程规划”总览页（置于 DAY1 之前） */
   syncTopbarH();
   buildOverview();
   renderOverviewPage();
+  /* 交互增强初始化 */
+  initCalc(); initLegend(); initShare(); initBackToTop(); initReveal();
   </script>
 </body>
 </html>
