@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>苏州4日游</title>
+<link rel="stylesheet" href="leaflet/leaflet.css" />
+<style>
+  :root{
+    --blue:#0071e3; --food:#ff6b35; --culture:#8e54e9; --shop:#00b894;
+    --ink:#1d1d1f; --sub:#6e6e73; --line:#e5e5ea;
+    --bg:#f5f5f7; --card:#ffffff;
+    --shadow:0 6px 24px rgba(0,0,0,.08);
+    --shadow-lift:0 14px 40px rgba(0,0,0,.16);
+    --serif:'PingFang SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    /* Apple 风格缓动曲线 */
+    --ease-out:cubic-bezier(.22,.61,.36,1);       /* 平滑减速 */
+    --ease-inout:cubic-bezier(.4,0,.2,1);          /* 标准双向 */
+    --ease-spring:cubic-bezier(.34,1.56,.64,1);    /* 轻微回弹 */
+  }
+  *{box-sizing:border-box;}
+
+  /* ===== Apple 风格入场 / 交互动画关键帧 ===== */
+  @keyframes cardIn{
+    0%{opacity:0; transform:translateY(16px) scale(.985); filter:blur(2px);}
+    100%{opacity:1; transform:translateY(0) scale(1); filter:blur(0);}
+  }
+  @keyframes fadeSlide{
+    0%{opacity:0; transform:translateY(10px);}
+    100%{opacity:1; transform:translateY(0);}
+  }
+  @keyframes popIn{
+    0%{opacity:0; transform:scale(.9);}
+    60%{opacity:1; transform:scale(1.03);}
+    100%{opacity:1; transform:scale(1);}
+  }
+  @keyframes shimmer{
+    0%{background-position:-140% 0;}
+    100%{background-position:140% 0;}
+  }
+  /* Apple 风：页面切换（模糊+缩放+上滑）、分块错峰、图片淡入、地图针落点 */
+  @keyframes pageIn{
+    0%{opacity:0; transform:translateY(14px) scale(.985); filter:blur(4px);}
+    100%{opacity:1; transform:translateY(0) scale(1); filter:blur(0);}
+  }
+  @keyframes imgFade{ 0%{opacity:0; transform:scale(1.02);} 100%{opacity:1; transform:scale(1);} }
+  @keyframes pinPop{ 0%{opacity:0; transform:rotate(-45deg) scale(.4);} 60%{opacity:1; transform:rotate(-45deg) scale(1.12);} 100%{transform:rotate(-45deg) scale(1);} }
+  @keyframes pinPopH{ 0%{opacity:0; transform:scale(.4);} 60%{opacity:1; transform:scale(1.12);} 100%{transform:scale(1);} }
+  @keyframes secIn{ 0%{opacity:0; transform:translateY(10px);} 100%{opacity:1; transform:translateY(0);} }
+  @keyframes riseIn{ 0%{opacity:0; transform:translateY(12px) scale(.98);} 100%{opacity:1; transform:translateY(0) scale(1);} }
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:var(--serif); color:var(--ink); background:var(--bg);
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== Banner ===== */
+  .banner{
+    position:relative; padding:26px 24px 22px; text-align:center;
+    background:linear-gradient(135deg,#1d6fb8 0%,#16a085 100%);
+    color:#fff; overflow:hidden;
+  }
+  .banner::after{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.25),transparent 45%),
+               radial-gradient(circle at 80% 80%,rgba(255,255,255,.18),transparent 40%);
+  }
+  .banner h1{
+    margin:0; font-size:34px; font-weight:800; letter-spacing:2px;
+    text-shadow:0 2px 12px rgba(0,0,0,.18); position:relative;
+  }
+  .banner .sub{margin-top:6px; font-size:14px; opacity:.92; position:relative; letter-spacing:1px;}
+  .budget-bar{position:relative; margin:14px auto 0; max-width:720px; display:inline-block;
+    background:rgba(0,0,0,.16); border:1px solid rgba(255,255,255,.3); border-radius:999px;
+    padding:7px 16px; font-size:13px; line-height:1.4; color:#fff;}
+  .budget-bar b{font-weight:800;}
+  .budget-bar .bb{font-size:15px; color:#fff; background:rgba(255,255,255,.22); padding:2px 9px; border-radius:999px; margin:0 2px;}
+  @media(max-width:520px){ .budget-bar{font-size:11.5px; padding:6px 10px;} .budget-bar .bb{font-size:13px;} }
+  .badges{position:absolute; top:18px; right:20px; display:flex; gap:10px; z-index:2;}
+  .badge{
+    background:rgba(255,255,255,.18); backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.35); border-radius:14px;
+    padding:8px 14px; min-width:78px; text-align:center; color:#fff;
+    transition:transform .4s var(--ease-spring), background .35s var(--ease-out);
+  }
+  .badge:hover{transform:translateY(-3px) scale(1.04); background:rgba(255,255,255,.28);}
+  .badge .v{font-size:20px; font-weight:800; line-height:1.1;}
+  .badge .k{font-size:11px; opacity:.9; margin-top:2px; letter-spacing:1px;}
+
+  /* ===== Tabs ===== */
+  .tabs{display:flex; gap:8px; padding:12px 18px; background:#fff;
+        border-bottom:1px solid var(--line); align-items:center; flex-wrap:wrap;}
+  .tab{
+    flex:1; min-width:90px; text-align:center; padding:10px 6px; cursor:pointer;
+    border-radius:12px; font-weight:700; font-size:15px; color:var(--sub);
+    background:var(--bg); user-select:none;
+    transition:background .4s var(--ease-out), color .3s var(--ease-out),
+               box-shadow .4s var(--ease-out), transform .22s var(--ease-spring);
+  }
+  .tab small{display:block; font-size:11px; font-weight:500; opacity:.8; margin-top:2px;}
+  .tab:hover{color:var(--ink); transform:translateY(-2px);}
+  .tab:active{transform:scale(.95);}
+  .tab.active{background:var(--blue); color:#fff; box-shadow:0 8px 22px rgba(0,113,227,.34); transform:translateY(-1px);}
+  .legend{display:flex; gap:14px; margin-left:auto; flex-wrap:wrap; font-size:12px; color:var(--sub);}
+  .legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+
+  /* ===== Topbar（标题 + DAY 标签容器） ===== */
+  .topbar{position:relative; z-index:1000;}
+
+  /* ===== Layout ===== */
+  .wrap{flex:1; display:flex; min-height:0;}
+  .left{flex:1 1 56%; overflow-y:auto; padding:18px 18px 40px;}
+  .right{flex:1 1 44%; position:sticky; top:0; min-height:0;}
+  #map{height:100%; width:100%; background:#eaeaea;}
+
+  /* ===== Timeline ===== */
+  .dayhead{display:flex; align-items:baseline; gap:10px; margin:4px 4px 14px;}
+  /* 切换 DAY 时重新播放的淡入（配合 JS 强制重排触发） */
+  .reveal{animation:fadeSlide .5s var(--ease-out) both;}
+  .dayhead .n{font-size:20px; font-weight:800; color:var(--ink);}
+  .dayhead .t{font-size:13px; color:var(--sub);}
+  .timeline{position:relative; padding-left:26px;}
+  .timeline::before{content:""; position:absolute; left:9px; top:6px; bottom:6px;
+    width:2px; background:linear-gradient(var(--blue),var(--food)); opacity:.35;}
+  .card{
+    position:relative; background:var(--card); border-radius:16px; padding:14px 16px;
+    margin-bottom:14px; box-shadow:var(--shadow); cursor:pointer;
+    border:1px solid transparent; will-change:transform,opacity;
+    transition:transform .4s var(--ease-out), box-shadow .4s var(--ease-out), border-color .3s var(--ease-out);
+  }
+  .card:hover{transform:translateY(-3px) scale(1.008); border-color:var(--blue); box-shadow:var(--shadow-lift);}
+  .card:active{transform:translateY(-1px) scale(.994); transition-duration:.12s;}
+  .card.active{border-color:var(--blue); box-shadow:0 10px 30px rgba(0,113,227,.28);}
+  /* 入场动画：切换 DAY 时逐条淡入上滑（错峰） */
+  .card.enter{animation:cardIn .6s var(--ease-out) both;}
+  .card .dot{position:absolute; left:-22px; top:20px; width:14px; height:14px; border-radius:50%;
+    border:3px solid #fff; box-shadow:0 0 0 2px rgba(0,0,0,.06);}
+  .card .row1{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .card .time{font-weight:800; font-size:15px; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .tag{font-size:12px; font-weight:700; color:#fff; padding:2px 9px; border-radius:20px;}
+  .card .name{font-size:17px; font-weight:700;}
+  .card .desc{font-size:13.5px; color:var(--sub); line-height:1.55; margin-top:4px;}
+  .card .meta{font-size:12px; color:var(--sub); margin-top:7px; display:flex; gap:14px; flex-wrap:wrap;}
+  .card .meta b{color:var(--ink); font-weight:700;}
+
+  /* map floating legend */
+  .map-legend{position:absolute; z-index:500; left:12px; bottom:14px;
+    background:rgba(255,255,255,.92); backdrop-filter:blur(6px); border-radius:12px;
+    padding:9px 12px; font-size:12px; box-shadow:var(--shadow); display:flex; gap:14px; flex-wrap:wrap;}
+  .map-legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+
+  .map-title{position:absolute; z-index:500; left:12px; top:12px;
+    background:rgba(255,255,255,.94); border-radius:12px; padding:8px 14px;
+    box-shadow:var(--shadow); font-weight:800; font-size:15px; color:var(--ink);}
+  .map-title small{display:block; font-size:11px; color:var(--sub); font-weight:500;}
+
+  .marker-pin{width:26px; height:26px; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+    border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center;
+    animation:pinPop .5s var(--ease-spring);}
+  .marker-pin span{transform:rotate(45deg); color:#fff; font-weight:800; font-size:12px;}
+  /* 酒店推荐标记（青色圆形，与四类POI区分；推荐款金色高亮） */
+  .hotel-pin{width:24px; height:24px; border-radius:50%; border:2px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.3); background:#0d9488; display:flex; align-items:center; justify-content:center; font-size:13px;
+    animation:pinPopH .5s var(--ease-spring);}
+  .hotel-pin.rec{border-color:#ffd166; box-shadow:0 0 0 3px rgba(255,209,102,.5),0 2px 6px rgba(0,0,0,.3);}
+  .legend-hotel{display:inline-flex; align-items:center; gap:5px; font-size:11px; color:#0d9488; margin-left:8px;}
+  .legend-hotel i{width:12px; height:12px; border-radius:50%; background:#0d9488; border:2px solid #ffd166; display:inline-block;}
+  .legend-cat{display:inline-flex; align-items:center; gap:10px; font-size:11px; color:var(--sub); margin-left:8px; flex-wrap:wrap;}
+  .legend-cat i{width:11px; height:11px; border-radius:50%; display:inline-block; margin-right:3px;}
+
+  /* ===== 行前交通卡 ===== */
+  .flight{background:linear-gradient(135deg,#0b3d91 0%,#0071e3 100%);color:#fff;
+    border-radius:16px; padding:16px 18px; margin-bottom:18px; box-shadow:var(--shadow);
+    animation:fadeSlide .55s var(--ease-out) both;}
+  .flight h3{margin:0 0 4px; font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px;}
+  .flight .route{font-size:13px; opacity:.92; margin-bottom:10px;}
+  .flight table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .flight th,.flight td{text-align:left; padding:7px 6px; border-top:1px solid rgba(255,255,255,.18);}
+  .flight th{opacity:.8; font-weight:600;}
+  .flight td .price{font-weight:800; color:#ffd166;}
+  .flight .note{font-size:11.5px; opacity:.92; margin-top:10px; line-height:1.55;}
+  .flight .arr{font-size:11.5px; opacity:.85; margin-top:8px; border-top:1px dashed rgba(255,255,255,.25); padding-top:8px; line-height:1.5;}
+  .flight .tax{font-size:11.5px; background:rgba(255,209,102,.16); border-radius:8px; padding:6px 10px; margin:8px 0 4px; line-height:1.5;}
+  .flight .tax b{color:#ffd166;}
+  .flight td.sum{font-weight:800; color:#ffd166; white-space:nowrap;}
+  .flight tbody tr.best{background:rgba(255,209,102,.16);}
+  .flight .pick{font-size:11px; font-weight:700; background:#ffd166; color:#5a3d00;
+    padding:3px 9px; border-radius:20px; margin-left:6px; vertical-align:middle;}
+  .flight .cmp{background:rgba(255,255,255,.10); border-radius:12px; padding:10px 12px; margin-top:8px;}
+  .flight .cmp-t{font-size:12.5px; font-weight:700; margin-bottom:4px;}
+  .fly-row{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+  .fly-card{flex:1; min-width:150px; background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.22); border-radius:12px; padding:10px 12px;
+    transition:transform .35s var(--ease-out), background .35s var(--ease-out);}
+  .fly-card:hover{transform:translateY(-3px); background:rgba(255,255,255,.2);}
+  .fl-k{font-size:11px; opacity:.85;}
+  .fl-v{font-size:14px; font-weight:800; margin-top:2px;}
+  .fl-d{font-size:11.5px; opacity:.9; margin-top:3px;}
+  .fl-p{font-size:15px; font-weight:800; color:#ffd166; margin-top:5px;}
+  .fl-p small{font-size:10.5px; font-weight:500; opacity:.9; color:#fff;}
+
+  /* 城际接驳行程规划面板（上海虹桥 → 苏州木渎） */
+  .transit-plan{background:var(--card); border-radius:16px; padding:16px 18px; margin-bottom:18px;
+    box-shadow:var(--shadow); border:1px solid var(--line); animation:fadeSlide .55s var(--ease-out) both;}
+  .transit-plan h3{margin:0 0 4px; font-size:16px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:8px;}
+  .tp-sub{font-size:12.5px; color:var(--sub); margin:0 0 14px; line-height:1.55;}
+  .tp-sub b{color:var(--ink);}
+  .tp-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:560px){ .tp-grid{grid-template-columns:1fr;} }
+  .route-card{background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:13px 14px;
+    transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out);}
+  .route-card:hover{transform:translateY(-3px); box-shadow:var(--shadow-lift);}
+  .rc-head{font-size:15px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:8px;}
+  .rc-flight{font-size:11px; font-weight:800; color:#fff; background:var(--blue); padding:3px 9px; border-radius:20px;}
+  .rc-tag{font-size:12px; color:var(--sub); margin:4px 0 10px;}
+  .tp-steps{list-style:none; margin:0; padding:0; counter-reset:step;}
+  .tp-steps li{position:relative; padding:0 0 12px 30px; font-size:12.5px; line-height:1.5; color:var(--ink);}
+  .tp-steps li:last-child{padding-bottom:0;}
+  .tp-steps li::before{content:counter(step); counter-increment:step; position:absolute; left:0; top:0;
+    width:21px; height:21px; border-radius:50%; background:var(--blue); color:#fff; font-size:11px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,113,227,.3);}
+  .tp-steps li::after{content:''; position:absolute; left:10px; top:21px; bottom:2px; width:1px; background:var(--line);}
+  .tp-steps li:last-child::after{display:none;}
+  .tp-steps b{color:var(--blue); font-weight:800;}
+  .rc-foot{font-size:11.5px; color:var(--sub); margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-weight:600;}
+  .tp-tip{font-size:12px; color:var(--sub); background:#eaf3ff; border-radius:10px; padding:10px 12px; margin-top:14px; line-height:1.6;}
+  .tp-tip b{color:var(--blue);}
+
+  /* 多图轮播：完整显示（不裁剪），可左右切换 */
+  .poi-gallery{position:relative; border-radius:10px; overflow:hidden; background:#eef0f3; margin:4px 0 8px;}
+  .pg-track{display:block; width:100%;}
+  .pg-img{width:100%; height:auto; object-fit:contain; background:#eef0f3; display:block;}
+  .pg-img:not(.on){display:none;}
+  .pg-img.on{animation:imgFade .35s var(--ease-out) both;}
+  .pg-nav{position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; border:none; border-radius:50%;
+    background:rgba(0,0,0,.42); color:#fff; font-size:19px; line-height:30px; text-align:center; cursor:pointer; z-index:3; padding:0;
+    transition:background .3s var(--ease-out), transform .2s var(--ease-spring);}
+  .pg-nav:hover{background:rgba(0,0,0,.62); transform:translateY(-50%) scale(1.12);}
+  .pg-nav:active{transform:translateY(-50%) scale(.9);}
+  .pg-prev{left:8px;} .pg-next{right:8px;}
+  .pg-count{position:absolute; right:10px; bottom:9px; background:rgba(0,0,0,.5); color:#fff; font-size:11px; padding:1px 8px; border-radius:12px; z-index:3;}
+  .pg-dots{position:absolute; left:0; right:0; bottom:9px; display:flex; gap:5px; justify-content:center; z-index:3; pointer-events:none;}
+  .pg-dots i{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.6); display:inline-block;}
+  .pg-dots i.on{background:#fff; transform:scale(1.3);}
+  .play{background:linear-gradient(135deg,#f0f7ff,#eaf3ff); border-left:3px solid var(--blue); border-radius:10px; padding:8px 10px; margin:8px 0 2px; font-size:12.5px; line-height:1.65; color:var(--sub);}
+  .play-t{display:block; font-weight:700; color:var(--blue); margin-bottom:3px; font-size:12px;}
+
+  /* ===== 住宿推荐（已选定 · 性价比酒店） ===== */
+  .stay{background:var(--card); border-radius:16px; padding:16px 18px; margin:18px 0 6px; box-shadow:var(--shadow); border:1px solid var(--line);}
+  .stay-h{font-size:17px; font-weight:800; margin-bottom:6px; color:var(--ink);}
+  .stay-why{font-size:13px; color:var(--sub); line-height:1.6; margin-bottom:12px;}
+  .hotels{display:flex; flex-direction:column; gap:10px;}
+  .ht{background:var(--bg); border-radius:12px; padding:12px 13px; border:1px solid var(--line); cursor:pointer;
+    transition:transform .4s var(--ease-out), box-shadow .4s var(--ease-out), border-color .3s var(--ease-out);
+    animation:riseIn .55s var(--ease-out) both;}
+  .ht:hover{transform:translateY(-3px); box-shadow:var(--shadow-lift); border-color:var(--blue);}
+  .ht:active{transform:translateY(-1px) scale(.995); transition-duration:.12s;}
+  .ht.active{outline:2px solid #ffd166; border-color:#ffd166;}
+  .ht-head{cursor:pointer; padding:2px 0 4px; border-radius:8px;}
+  .ht-head:hover{opacity:.92;}
+  .ht-tap{font-size:11.5px; color:#0d9488; margin-top:2px; font-weight:600;}
+  .ht-nm{font-weight:700; font-size:15px; color:var(--ink);}
+  .ht-st{color:#b8860b; font-size:12px; margin-left:4px; font-weight:700;}
+  .ht-meta{font-size:12.5px; color:var(--sub); margin-top:6px; line-height:1.55;}
+  .ht-meta b{color:var(--ink);}
+  .ht-around{background:linear-gradient(135deg,#f3faf8,#eaf7f3); border:1px solid #cdeee6; border-radius:10px; padding:9px 11px; margin:10px 0 4px; font-size:12.5px; color:var(--sub); line-height:1.55;}
+  .around-t{display:block; font-weight:700; color:#0d9488; margin-bottom:5px; font-size:12.5px;}
+  .ht-around ul{margin:0; padding-left:18px;} .ht-around li{margin:3px 0;}
+  .ht-around b{color:var(--ink);}
+  .rooms{display:flex; flex-direction:column; gap:12px; margin-top:10px;}
+  .room{background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+    transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out);}
+  .room:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .room-nm{font-weight:700; font-size:14px; color:var(--ink); margin-bottom:6px;}
+  .room-tag{font-size:11.5px; color:#0d9488; background:#e6f7f2; border-radius:10px; padding:1px 8px; margin-left:6px; font-weight:600;}
+  .room-gallery{margin:2px 0 4px;}
+  .room-price{font-size:13px; color:var(--sub); margin-top:2px;} .room-price b{color:#e2452f; font-size:16px; font-weight:800; margin:0 2px;}
+  .stay-foot{font-size:12px; color:var(--sub); margin-top:12px; line-height:1.55; border-top:1px dashed var(--line); padding-top:10px;}
+
+  /* ===== 全程规划总览（独立成页，置于 DAY1 之前，与每日内容互斥显示） ===== */
+  .page{will-change:transform,opacity;}            /* 单页容器：overview / dayView 二者只显示一个 */
+  .page.reveal{animation:pageIn .55s var(--ease-out) both;}
+  .ov{background:var(--card); border-radius:16px; padding:18px 18px 16px; margin-bottom:18px;
+    box-shadow:var(--shadow); border:1px solid var(--line);}
+  .ov-head{font-size:18px; font-weight:800; color:var(--ink); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+  .ov-head small{font-size:12px; color:var(--sub); font-weight:500;}
+  .ov-sec{margin-bottom:16px;}
+  .ov-sec:last-child{margin-bottom:0;}
+  .ov-sec-t{font-size:14px; font-weight:800; color:var(--ink); margin-bottom:9px; display:flex; align-items:center; gap:6px; padding-left:10px; border-left:3px solid var(--blue);}
+  .ov-transit{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media(max-width:560px){ .ov-transit{grid-template-columns:1fr;} }
+  .ov-fly{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:11px 13px;}
+  .ov-fly-k{font-size:11px; font-weight:800; color:#fff; background:var(--blue); padding:2px 9px; border-radius:20px; display:inline-block;}
+  .ov-fly-r{font-size:12.5px; color:var(--sub); margin:7px 0 4px; line-height:1.5;}
+  .ov-fly-p{font-size:15px; font-weight:800; color:#e2452f;}
+  .ov-fly-p small{font-size:11px; color:var(--sub); font-weight:500;}
+  .ov-fly-sub{font-size:12.5px; color:var(--ink); margin:2px 0 4px; line-height:1.5; padding-left:14px; position:relative;}
+  .ov-fly-sub::before{content:'🚄'; position:absolute; left:-2px; top:0;}
+  .ov-fly-sub b{color:var(--blue);}
+  .ov-hotels{display:flex; flex-direction:column; gap:9px;}
+  .ov-hotel{display:flex; gap:10px; align-items:flex-start; background:var(--bg); border:1px solid var(--line);
+    border-radius:12px; padding:11px 13px; cursor:pointer; transition:transform .4s var(--ease-out), box-shadow .4s var(--ease-out), border-color .3s var(--ease-out);}
+  .ov-hotel:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift); border-color:var(--blue);}
+  .ov-hotel .h-ic{font-size:18px; line-height:1.4;}
+  .ov-hotel .h-mn{font-weight:700; font-size:14px; color:var(--ink);}
+  .ov-hotel .h-st{font-size:11px; color:#b8860b; font-weight:700; margin-left:4px;}
+  .ov-hotel .h-dt{font-size:11.5px; color:var(--sub); margin-top:2px;}
+  .ov-foot{font-size:11.5px; color:var(--sub); margin-top:10px; line-height:1.55; border-top:1px dashed var(--line); padding-top:9px;}
+  .ov-plan{display:flex; flex-direction:column; gap:8px;}
+  .ov-day{display:flex; gap:12px; align-items:stretch;}
+  .ov-day .d-no{flex:0 0 64px; text-align:center; background:linear-gradient(135deg,#1d6fb8,#16a085); color:#fff;
+    border-radius:10px; padding:8px 4px; font-weight:800; font-size:13px; line-height:1.25;}
+  .ov-day .d-no small{display:block; font-size:10px; font-weight:500; opacity:.9; margin-top:2px;}
+  .ov-day .d-body{flex:1; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:9px 12px;}
+  .ov-day .d-th{font-weight:800; font-size:14px; color:var(--ink);}
+  .ov-day .d-pl{font-size:12px; color:var(--sub); margin-top:3px; line-height:1.5;}
+
+  /* ===== 前期准备进度打卡 ===== */
+  .prep{background:linear-gradient(135deg,#f0f7ff,#eefaf4); border:1px solid var(--line); border-radius:14px; padding:14px 15px 13px;}
+  .prep-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:11px;}
+  .prep-top-l{font-size:13px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:6px;}
+  .prep-top-l small{font-size:11px; color:var(--sub); font-weight:500;}
+  .prep-sync{font-size:11px; font-weight:600; transition:color .3s var(--ease-out);}
+  .prep-sync.ok{color:var(--shop);}
+  .prep-sync.busy{color:var(--blue);}
+  .prep-sync.off{color:#e2452f;}
+  .prep-sync.local{color:var(--purple);}
+  .prep-pct{font-size:22px; font-weight:800; line-height:1; color:var(--blue); font-variant-numeric:tabular-nums;
+    transition:color .4s var(--ease-out), transform .4s var(--ease-spring);}
+  .prep-pct.done{color:var(--shop);}
+  .prep-pct.bump{transform:scale(1.18);}
+  .prep-bar{height:12px; border-radius:20px; background:#e3e9f0; overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,.08); margin-bottom:13px;}
+  .prep-fill{height:100%; width:0; border-radius:20px; position:relative; overflow:hidden;
+    background:linear-gradient(90deg,#0071e3,#00b894);
+    transition:width .7s var(--ease-inout);}
+  .prep-fill::after{content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+    transform:translateX(-100%); animation:prepShine 2.2s var(--ease-inout) infinite;}
+  @keyframes prepShine{0%{transform:translateX(-100%);} 60%,100%{transform:translateX(200%);}}
+  .prep-list{display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px;}
+  @media(max-width:640px){ .prep-list{grid-template-columns:1fr 1fr;} }
+  @media(max-width:420px){ .prep-list{grid-template-columns:1fr;} }
+  .prep-item{display:flex; align-items:center; gap:9px; background:var(--card); border:1.5px solid var(--line);
+    border-radius:11px; padding:9px 11px; cursor:pointer; user-select:none;
+    transition:border-color .3s var(--ease-out), box-shadow .3s var(--ease-out), transform .25s var(--ease-spring), background .3s var(--ease-out);}
+  .prep-item:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift); border-color:var(--blue);}
+  .prep-item.checked{border-color:var(--shop); background:linear-gradient(135deg,#f0fbf6,#ffffff);}
+  .prep-cb{flex:0 0 22px; width:22px; height:22px; border-radius:7px; border:2px solid #c4ccd6; background:#fff;
+    position:relative; transition:background .3s var(--ease-out), border-color .3s var(--ease-out), transform .3s var(--ease-spring);}
+  .prep-cb::after{content:''; position:absolute; left:6.5px; top:2.5px; width:5px; height:10px;
+    border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(45deg) scale(0); transform-origin:center;
+    transition:transform .32s var(--ease-spring);}
+  .prep-item.checked .prep-cb{background:var(--shop); border-color:var(--shop); transform:scale(1.05);}
+  .prep-item.checked .prep-cb::after{transform:rotate(45deg) scale(1);}
+  .prep-ic{font-size:16px; line-height:1;}
+  .prep-tx{font-size:13px; font-weight:700; color:var(--ink); transition:color .3s var(--ease-out);}
+  .prep-item.checked .prep-tx{color:var(--shop);}
+  .prep-item.checked .prep-tx-sub{text-decoration:line-through; opacity:.6;}
+  .prep-tx-sub{display:block; font-size:10.5px; font-weight:500; color:var(--sub); margin-top:1px;}
+  .prep-foot{font-size:11.5px; color:var(--sub); margin-top:11px; line-height:1.5; display:flex; align-items:center; gap:6px;}
+  .prep-reset{margin-left:auto; font-size:11px; font-weight:700; color:var(--blue); background:none; border:none;
+    cursor:pointer; padding:3px 8px; border-radius:8px; transition:background .25s var(--ease-out);}
+  .prep-reset:hover{background:rgba(0,113,227,.1);}
+
+  /* ===== 天气信息 ===== */
+  .ov-weather{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px;}
+  .w-card{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+  .w-city{font-weight:800; font-size:14px; color:var(--ink); margin-bottom:4px;}
+  .w-icon{font-size:32px; line-height:1; margin:4px 0;}
+  .w-temp{font-size:18px; font-weight:800; color:#e2452f;}
+  .w-range{font-size:11px; color:var(--sub);}
+  .w-desc{font-size:11.5px; color:var(--sub); margin-top:4px; line-height:1.45;}
+  .w-tip{font-size:10.5px; color:var(--blue); margin-top:4px; font-weight:600;}
+
+  /* ===== 竖版（手机/窄屏）：整页自然滚动，地图置顶且随滚动让位，不再常驻半屏挡视线 ===== */
+  @media (max-width:860px){
+    html,body{height:auto;}
+    body{overflow:auto; height:auto; min-height:100vh;}
+    .wrap{flex-direction:column; min-height:0;}
+    .right{order:-1; position:relative; flex:none; height:42vh;}   /* 地图置顶 · 42vh · 非吸顶，向下读行程时自动滚走 */
+    #map{height:100%;}
+    .left{flex:none; max-height:none; overflow:visible; padding:16px 16px 44px;}
+    .badges{position:static; justify-content:center; margin-top:12px;}
+    .banner{padding-bottom:18px;}
+    /* 竖版专属：地图上方给一条“点卡片可定位”的提示 */
+    .map-hint{display:block;}
+    /* 竖版：标题 + DAY 标签冻结在顶部，滚动到任何位置都能切换 DAY */
+    .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:1000;
+      box-shadow:0 4px 14px rgba(0,0,0,.12);}
+    .banner{padding:14px 16px 12px;}
+    .banner h1{font-size:25px;}
+    .banner .sub{font-size:12px; margin-top:3px;}
+    .budget-bar{margin-top:8px; font-size:12px; padding:5px 12px;}
+    .tabs{padding:9px 12px; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,.05);}
+    .tab{font-size:14px; padding:8px 4px; min-width:0;}
+    .tab small{font-size:10px;}
+    .legend{display:none;}   /* 竖版空间有限，隐藏顶部图例（地图自带图例） */
+  }
+
+  /* ===== 矮视口横屏 / 折叠屏：强制紧凑单列，避免标题+标签+卡片抢空间 ===== */
+  @media (max-height:520px) and (min-width:600px){
+    html,body{height:auto; overflow:auto; min-height:100vh;}
+    body{height:auto; overflow:auto;}
+    .wrap{flex-direction:column; min-height:0;}
+    .right{order:-1; position:relative; flex:none; height:36vh; min-height:170px;}   /* 地图置顶且更矮，给内容留空间 */
+    #map{height:100%;}
+    .left{flex:none; max-height:none; overflow:visible; padding:10px 14px 28px;}
+    .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:1000; box-shadow:0 3px 10px rgba(0,0,0,.10);}
+
+    /* 顶栏大幅压缩 */
+    .banner{padding:8px 12px 6px;}
+    .banner h1{font-size:20px; letter-spacing:1px;}
+    .banner .sub{font-size:11px; margin-top:1px;}
+    .badges{position:static; justify-content:center; margin-top:4px; gap:5px;}
+    .badge{padding:4px 8px; min-width:0; border-radius:10px;}
+    .badge .v{font-size:14px;}
+    .badge .k{font-size:9px;}
+    .budget-bar{font-size:10.5px; padding:3px 9px; margin-top:5px; line-height:1.35;}
+    .budget-bar .bb{font-size:11px;}
+
+    /* 标签压缩 */
+    .tabs{padding:5px 10px; gap:4px;}
+    .tab{font-size:12px; padding:5px 3px; min-width:0; border-radius:8px;}
+    .tab small{font-size:9px; margin-top:1px;}
+    .legend{display:none;}
+    .map-hint{display:block; top:8px; right:8px; padding:4px 8px; font-size:10.5px;}
+
+    /* 内容更紧凑 */
+    .dayhead{margin:0 0 6px;}
+    .dayhead .n{font-size:16px;}
+    .dayhead .t{font-size:11px;}
+    .timeline{padding-left:22px;}
+    .timeline::before{left:7px;}
+    .card{padding:9px 11px; margin-bottom:7px; border-radius:12px;}
+    .card .dot{left:-19px; top:16px; width:11px; height:11px; border-width:2px;}
+    .card .time{font-size:13px;}
+    .card .name{font-size:15px;}
+    .card .desc{font-size:12px; line-height:1.45;}
+    .card .meta{font-size:11px; margin-top:4px; gap:10px;}
+    .tag{font-size:11px; padding:1px 7px;}
+
+    /* 酒店卡/轮播紧凑 */
+    .ht{padding:9px 11px; margin-bottom:8px; border-radius:12px;}
+    .ht-head{padding-bottom:7px; margin-bottom:7px;}
+    .ht-nm{font-size:15px;}
+    .ht-tap{font-size:10px;}
+    .ht-meta,.ht-around{font-size:11.5px;}
+    .room-nm{font-size:13px;}
+    .room-price{font-size:12px;}
+  }
+
+  /* 横版（桌面/宽屏）隐藏竖版提示 */
+  .map-hint{display:none; position:absolute; z-index:500; right:12px; top:12px;
+    background:rgba(0,113,227,.92); color:#fff; border-radius:10px; padding:6px 11px;
+    font-size:11.5px; font-weight:600; box-shadow:var(--shadow);
+    transition:transform .35s var(--ease-out), opacity .35s var(--ease-out);}
+
+  /* Leaflet 弹窗：Apple 风格圆角 + 轻回弹入场 */
+  .leaflet-popup-content-wrapper{border-radius:14px !important; box-shadow:var(--shadow-lift) !important;}
+  .leaflet-popup{animation:popIn .38s var(--ease-spring) both;}
+  .marker-pin, .hotel-pin{transition:transform .25s var(--ease-spring);}
+  .leaflet-marker-icon:hover .marker-pin{transform:rotate(-45deg) scale(1.15);}
+  .leaflet-marker-icon:hover .hotel-pin{transform:scale(1.18);}
+
+  /* ===== Apple 风：总览页分块 / 卡片错峰入场 ===== */
+  .ov-sec{animation:secIn .5s var(--ease-out) both;}
+  .ov-sec:nth-of-type(1){animation-delay:0s;}
+  .ov-sec:nth-of-type(2){animation-delay:.08s;}
+  .ov-sec:nth-of-type(3){animation-delay:.16s;}
+  .ov-sec:nth-of-type(4){animation-delay:.24s;}
+  .ov-sec:nth-of-type(5){animation-delay:.32s;}
+  .ov-fly,.ov-hotel,.ov-day,.w-card{animation:riseIn .5s var(--ease-out) both;}
+  .ov-transit .ov-fly:nth-child(1){animation-delay:.10s;}
+  .ov-transit .ov-fly:nth-child(2){animation-delay:.20s;}
+  .ov-hotels .ov-hotel:nth-child(1){animation-delay:.10s;}
+  .ov-hotels .ov-hotel:nth-child(2){animation-delay:.18s;}
+  .ov-plan .ov-day:nth-child(1){animation-delay:.10s;}
+  .ov-plan .ov-day:nth-child(2){animation-delay:.16s;}
+  .ov-plan .ov-day:nth-child(3){animation-delay:.22s;}
+  .ov-plan .ov-day:nth-child(4){animation-delay:.28s;}
+  .ov-weather .w-card:nth-child(1){animation-delay:.10s;}
+  .ov-weather .w-card:nth-child(2){animation-delay:.16s;}
+  .ov-weather .w-card:nth-child(3){animation-delay:.22s;}
+  .ov-weather .w-card:nth-child(4){animation-delay:.28s;}
+  /* 总览卡片轻交互：悬浮微抬起 */
+  .ov-day,.w-card,.ov-fly{transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out);}
+  .ov-day:hover,.w-card:hover,.ov-fly:hover{transform:translateY(-2px); box-shadow:var(--shadow-lift);}
+
+  /* 尊重系统“减少动态效果”偏好 */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important;
+      transition-duration:.001ms !important; scroll-behavior:auto !important;}
+  }
+
+  /* ===== 备选景点（时间充裕时）===== */
+  .backup-sec{margin-top:26px; animation:secIn .55s var(--ease-out) both;}
+  .backup-sec-h{display:flex; align-items:center; gap:8px; margin:0 0 12px; font-size:15px; font-weight:650; color:var(--txt);}
+  .backup-sec-h .bh-ic{width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#ffd9a8,#ffb86b); color:#7a4a12; font-size:14px; box-shadow:0 3px 10px rgba(255,150,40,.28);}
+  .backup-sec-h small{font-weight:400; color:var(--mut); font-size:12.5px; margin-left:2px;}
+  .backup-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:520px){ .backup-grid{grid-template-columns:1fr;} }
+  .bcard{position:relative; background:var(--card); border:1px dashed var(--line-b); border-radius:15px; padding:13px 14px 12px;
+    cursor:pointer; overflow:hidden; transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out), border-color .25s;
+    animation:riseIn .5s var(--ease-out) both;}
+  .bcard:hover{transform:translateY(-3px); box-shadow:0 10px 26px rgba(0,0,0,.10); border-color:var(--accent);}
+  .bcard .bd-row{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .bcard .bd-tag{font-size:11.5px; font-weight:600; color:#fff; padding:2px 8px; border-radius:20px; background:#9aa3ad;}
+  .bcard .bd-name{font-size:15px; font-weight:650; color:var(--txt);}
+  .bcard .bd-desc{font-size:13px; line-height:1.62; color:var(--mut); margin-bottom:8px;}
+  .bcard .bd-meta{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--mut); border-top:1px solid var(--line); padding-top:8px;}
+  .bcard .bd-meta b{color:var(--txt); font-weight:600; margin-right:3px;}
+  .bcard .bd-go{position:absolute; right:12px; top:12px; width:24px; height:24px; border-radius:50%; background:var(--accent);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; opacity:0; transform:scale(.7); transition:.25s;}
+  .bcard:hover .bd-go{opacity:1; transform:scale(1);}
+  /* 地图：备选针（空心环 + 备字） */
+  .bk-pin{width:26px; height:26px; border-radius:50%; border:2.5px dashed #8a95a1; background:rgba(255,255,255,.9);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#6b7480;
+    box-shadow:0 2px 6px rgba(0,0,0,.18);}
+
+  /* ===== 翻书画册（StPageFlip） ===== */
+  .book-fab{position:fixed; right:20px; bottom:22px; z-index:1400; display:flex; align-items:center; gap:8px;
+    padding:12px 18px; border:none; border-radius:30px; cursor:pointer; font-family:inherit; font-size:14.5px; font-weight:700;
+    color:#fff; background:linear-gradient(135deg,#0071e3,#8e54e9); box-shadow:0 10px 28px rgba(0,113,227,.38);
+    transition:transform .3s var(--ease-spring), box-shadow .3s var(--ease-out);}
+  .book-fab:hover{transform:translateY(-3px) scale(1.04); box-shadow:0 16px 38px rgba(0,113,227,.46);}
+  .book-fab:active{transform:scale(.95);}
+  .book-fab .bf-ic{font-size:18px; line-height:1;}
+  @media (max-width:520px){ .book-fab{right:14px; bottom:16px; padding:10px 15px; font-size:13px;} }
+
+  .book-overlay{position:fixed; inset:0; z-index:1500; display:none; opacity:0;
+    background:radial-gradient(120% 120% at 50% 0%, rgba(40,42,54,.92), rgba(20,20,28,.97));
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    transition:opacity .4s var(--ease-out);}
+  .book-overlay.on{display:flex; opacity:1;}
+  .book-overlay.on .book-stage{transform:translateY(0) scale(1); opacity:1;}
+  .book-stage{margin:auto; transform:translateY(24px) scale(.96); opacity:0;
+    transition:transform .5s var(--ease-spring), opacity .5s var(--ease-out);
+    width:min(92vw,900px); height:min(88vh,640px); display:flex; align-items:center; justify-content:center; position:relative;}
+  #flipBook{width:100%; height:100%;}
+  #flipBook .stf__parent{margin:0 auto;}
+  .book-close{position:absolute; top:-46px; right:0; width:40px; height:40px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,.16); color:#fff; font-size:22px; line-height:1; display:flex; align-items:center; justify-content:center;
+    transition:background .25s, transform .25s;}
+  .book-close:hover{background:rgba(255,255,255,.3); transform:rotate(90deg);}
+  .book-title-bar{position:absolute; top:-42px; left:0; color:rgba(255,255,255,.9); font-size:14px; font-weight:600; letter-spacing:.3px;
+    display:flex; align-items:center; gap:8px;}
+  .book-nav{position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:46px; height:46px; border-radius:50%; border:none;
+    cursor:pointer; background:rgba(255,255,255,.16); color:#fff; font-size:24px; line-height:1; display:flex; align-items:center; justify-content:center;
+    transition:background .25s, transform .2s; backdrop-filter:blur(4px);}
+  .book-nav:hover{background:rgba(255,255,255,.32);}
+  .book-nav:active{transform:translateY(-50%) scale(.9);}
+  .book-prev{left:-62px;} .book-next{right:-62px;}
+  .book-hint{position:absolute; bottom:-38px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.6); font-size:12.5px; white-space:nowrap;}
+  @media (max-width:820px){
+    .book-prev{left:6px; background:rgba(0,0,0,.3);} .book-next{right:6px; background:rgba(0,0,0,.3);}
+  }
+
+  /* 单页样式 */
+  .pf-page{background:#fbfaf7; overflow:hidden;}
+  .pf-in{width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; position:relative;
+    font-family:var(--serif); color:var(--ink);}
+  /* 封面 / 封底（硬页） */
+  .pf-cover{background:linear-gradient(150deg,#123047 0%,#1c4a63 45%,#2b6b7d 100%); color:#fff; overflow:hidden;}
+  .pf-cover .pf-cv-img{position:absolute; inset:0; background-size:cover; background-position:center; opacity:.42;}
+  .pf-cover .pf-cv-mask{position:absolute; inset:0; background:linear-gradient(180deg,rgba(10,25,40,.25),rgba(10,25,40,.75));}
+  .pf-cover .pf-cv-body{position:relative; margin:auto; text-align:center; padding:30px;}
+  .pf-cover .pf-cv-badge{font-size:13px; letter-spacing:6px; opacity:.85; margin-bottom:14px;}
+  .pf-cover .pf-cv-big{font-size:64px; font-weight:800; letter-spacing:6px; line-height:1.05; text-shadow:0 4px 20px rgba(0,0,0,.4);}
+  .pf-cover .pf-cv-sub{font-size:19px; font-weight:600; margin-top:12px; opacity:.95;}
+  .pf-cover .pf-cv-line{width:52px; height:3px; background:rgba(255,255,255,.7); margin:20px auto; border-radius:2px;}
+  .pf-cover .pf-cv-date{font-size:14px; opacity:.85; letter-spacing:1px;}
+  .pf-cover .pf-cv-foot{position:absolute; bottom:24px; left:0; right:0; text-align:center; font-size:12px; opacity:.7;}
+  /* 内容页 */
+  .pf-hero{height:44%; background-size:cover; background-position:center; position:relative; flex:none;}
+  .pf-hero .pf-hero-tag{position:absolute; left:16px; bottom:12px; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.6);}
+  .pf-hero .pf-hero-tag .pf-day{font-size:13px; font-weight:600; opacity:.9; letter-spacing:1px;}
+  .pf-hero .pf-hero-tag .pf-theme{font-size:20px; font-weight:800; margin-top:2px;}
+  .pf-hero:after{content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.45));}
+  .pf-body{flex:1; padding:16px 20px 18px; overflow:hidden; display:flex; flex-direction:column;}
+  .pf-plan{font-size:13px; line-height:1.66; color:var(--sub); background:#f4f1ea; border-radius:10px; padding:10px 12px; margin-bottom:12px;}
+  .pf-plan b{color:var(--ink);}
+  .pf-tl{list-style:none; margin:0; padding:0; flex:1; overflow:hidden;}
+  .pf-tl li{display:flex; align-items:flex-start; gap:10px; padding:6px 0; border-bottom:1px dashed #e7e2d7;}
+  .pf-tl li:last-child{border-bottom:none;}
+  .pf-tl .pf-t{font-size:12.5px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums; min-width:44px; padding-top:1px;}
+  .pf-tl .pf-nm{font-size:13.5px; font-weight:600; color:var(--ink); line-height:1.4;}
+  .pf-tl .pf-ic{font-size:14px; line-height:1.4;}
+  .pf-pageno{position:absolute; bottom:8px; right:14px; font-size:11px; color:#b3ab9c; font-variant-numeric:tabular-nums;}
+  .pf-sec-title{font-size:15px; font-weight:800; color:var(--ink); margin:0 0 12px; display:flex; align-items:center; gap:8px;}
+  /* 总览页 */
+  .pf-ov-head{padding:22px 22px 6px;}
+  .pf-ov-h1{font-size:22px; font-weight:800;}
+  .pf-ov-h1 small{display:block; font-size:13px; font-weight:500; color:var(--sub); margin-top:4px;}
+  .pf-route{margin:14px 20px; padding:14px; background:#f4f1ea; border-radius:12px; font-size:13px; line-height:1.9; color:var(--ink);}
+  .pf-route b{color:var(--blue);}
+  .pf-budget{margin:0 20px; display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .pf-budget .pf-bg{background:#fff; border:1px solid var(--line); border-radius:10px; padding:9px 11px;}
+  .pf-budget .pf-bg .k{font-size:11.5px; color:var(--sub);}
+  .pf-budget .pf-bg .v{font-size:15px; font-weight:800; color:var(--ink); margin-top:2px; font-variant-numeric:tabular-nums;}
+  .pf-budget .pf-bg.total{grid-column:1 / -1; background:linear-gradient(135deg,#eaf3ff,#f2ecff); border-color:#d5e3ff;}
+  .pf-budget .pf-bg.total .v{color:var(--blue); font-size:20px;}
+  /* 住宿页 */
+  .pf-hotel{display:flex; gap:12px; padding:12px 14px; border-bottom:1px solid var(--line);}
+  .pf-hotel .pf-ht-img{width:96px; height:72px; border-radius:10px; background-size:cover; background-position:center; flex:none;}
+  .pf-hotel .pf-ht-nm{font-size:14px; font-weight:750; color:var(--ink);}
+  .pf-hotel .pf-ht-tag{font-size:11.5px; color:var(--shop); font-weight:600; margin:2px 0 4px;}
+  .pf-hotel .pf-ht-dc{font-size:12px; color:var(--sub); line-height:1.55;}
+  @media (max-width:520px){
+    .pf-cover .pf-cv-big{font-size:46px;}
+    .pf-hero{height:40%;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar" id="topbar">
+  <header class="banner">
+    <div class="badges" id="badges"></div>
+    <h1>苏州 · 4 日深度游</h1>
+    <div class="sub">江南水乡 · 园林古城 · 榆次出发 · 9/26–9/29</div>
+    <div class="budget-bar" id="budgetBar"></div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+  </div>
+
+  <div class="wrap">
+    <section class="left">
+      <div id="overview" class="page"></div>
+
+      <div id="dayView" class="page">
+        <div id="flightSlot"></div>
+        <div class="dayhead">
+          <span class="n" id="dayN">DAY 1</span>
+          <span class="t" id="dayT"></span>
+        </div>
+        <div class="timeline" id="timeline"></div>
+        <div id="backupSlot"></div>
+        <div id="hotelSlot"></div>
+      </div>
+    </section>
+    <section class="right">
+      <div id="map"></div>
+      <div class="map-hint">👆 点行程卡片，地图定位该点</div>
+      <div class="map-title" id="mapTitle"></div>
+      <div class="map-legend">
+        <span><i style="background:var(--blue)"></i>景点</span>
+        <span><i style="background:var(--food)"></i>美食</span>
+        <span><i style="background:var(--culture)"></i>文化</span>
+        <span><i style="background:var(--shop)"></i>购物</span>
+        <span><i style="background:#e2452f"></i>交通</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- 翻书画册入口 + 全屏浮层 -->
+  <button class="book-fab" id="bookFab" type="button" aria-label="打开翻书画册"><span class="bf-ic">📖</span>翻书画册</button>
+  <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游画册">
+    <div class="book-stage">
+      <div class="book-title-bar">📖 苏州 4 日游 · 翻页画册</div>
+      <button class="book-close" id="bookClose" type="button" aria-label="关闭">×</button>
+      <button class="book-nav book-prev" id="bookPrev" type="button" aria-label="上一页">‹</button>
+      <div id="flipBook"></div>
+      <button class="book-nav book-next" id="bookNext" type="button" aria-label="下一页">›</button>
+      <div class="book-hint">拖动书页一角，或点两侧箭头翻页 · Esc 关闭</div>
+    </div>
+  </div>
+
+  <script src="leaflet/leaflet.js"></script>
+  <script src="pageflip.js"></script>
+  <script>
+  /* ===== 分类配色 ===== */
+  const CAT = {
+    '景点':{c:'#0071e3', i:'📍'},
+    '美食':{c:'#ff6b35', i:'🍜'},
+    '文化':{c:'#8e54e9', i:'🏛️'},
+    '购物':{c:'#00b894', i:'🛍️'},
+    '交通':{c:'#e2452f', i:'🚄'}
+  };
+
+  /* ===== 行程数据（坐标 GCJ-02，与高德瓦片一致，无需转换）===== */
+  const DAYS = [
+    { id:1, date:'9/26', wd:'周六', theme:'榆次出发 · 上海虹桥夜', hotel:0, plan:'榆次打车到太原武宿，乘 <b>HO132</b> 飞上海虹桥，住汉庭虹桥，次日 9:26 高铁赴苏州。', flight:'', pois:[]},
+    { id:2, date:'9/27', wd:'周日', theme:'赴苏州 · 虎丘 · 木渎古镇慢游', hotel:1, plan:'9:26 高铁到苏州站 → 先游<b>虎丘</b>（到苏州不游虎丘，乃憾事也）→ 赴木渎悦华放行李 → 木渎古镇摇橹船慢游。', flight:'', pois:[
+      {t:'09:26', cat:'景点', name:'上海虹桥站 · 乘高铁赴苏州', lng:121.3220, lat:31.1950,
+        desc:'9:26 从虹桥火车站乘高铁约 30min 直达苏州站（二等座约 ¥41–46/人，4 人约 ¥180）。机场与高铁同枢纽，前一晚住汉庭虹桥，从容出发。',
+        meta:{'车次':'9:26 出发','车程':'约 30min','票价':'¥41–46/人'}, img:'', info:'上海虹桥→苏州高铁每日约 600+ 班，最快 23 分钟直达苏州北、约 30–40 分钟到苏州站，二等座约 ¥41–46/人。从虹桥 T2 到虹桥站步行 / 地铁 2 号线约 10 分钟，前一晚住汉庭虹桥，9:26 车次轻松赶上。'},
+      {t:'10:10', cat:'交通', name:'苏州站 · 打车赴虎丘', lng:120.5860, lat:31.3170,
+        desc:'抵达苏州站，先去西北方向的虎丘——到苏州不游虎丘，乃憾事也。打车约 25min、¥40–55，顺路不绕。',
+        meta:{'打车':'→ 虎丘','车程':'约 25min','贴士':'先游虎丘再回木渎'}, img:'', info:'苏州站位于城北，虎丘在其西北约 12km。按“短距离地铁、地铁超 20min 改打车”的原则，这一段直接打车约 25min、¥40–55 最省时；把虎丘放在抵达当天第一站，玩完再南下木渎放行李，全程一条西北→西南的顺路动线，不走回头路。'},
+      {t:'10:40', cat:'景点', name:'虎丘 · 云岩寺塔（夯爆了！）', lng:120.5410, lat:31.3170,
+        desc:'苏轼盛赞“到苏州不游虎丘，乃憾事也”。江南第一斜塔云岩寺塔、剑池、千人石、断梁殿，千年吴越遗韵，游客口碑“夯爆了”。',
+        meta:{'门票':'¥70（旺季）','标签':'🔴 夯爆了','建议':'2–2.5h'}, img:'', info:'虎丘是苏州的城市名片，海拔仅 36 米却因云岩寺塔（建于五代、近千年倾斜约 3°，人称“东方比萨斜塔”）闻名天下。苏轼曾言“到苏州而不游虎丘，乃是憾事”。核心看点：云岩寺塔、剑池（传说吴王阖闾墓所在）、千人石、断梁殿、拥翠山庄。开放约 7:30–17:30，旺季门票约 ¥70，建议游玩 2–2.5 小时。从虎丘打车赴木渎约 40min。'},
+      {t:'13:10', cat:'交通', name:'虎丘 · 打车赴木渎悦华', lng:120.5410, lat:31.3170,
+        desc:'虎丘玩罢，南下木渎悦华酒店（约 40min，¥70–90），先到酒店放好行李，轻装再逛古镇。',
+        meta:{'打车':'→ 木渎悦华','车程':'约 40min','贴士':'先放行李再玩'}, img:'', info:'虎丘在苏州西北，木渎在西南，两地约 18km。直接打车约 40min、¥70–90；到木渎悦华酒店先寄放行李，轻装步行几分钟即达木渎古镇。'},
+      {t:'13:50', cat:'美食', name:'午餐 · 木渎本地味', lng:120.5167, lat:31.2505,
+        desc:'酒店放好行李，就近吃顿木渎本地菜——苏式汤面、藏书羊肉、太湖三白皆可，垫垫肚子再逛古镇。',
+        meta:{'推荐':'苏式面·藏书羊肉','人均':'¥40–80','贴士':'就近用餐'}, img:'', info:'木渎本地菜值得一试：苏式红汤面讲究汤清面细、浇头考究；藏书羊肉（秋冬羊肉名镇）白切 / 红烧皆鲜；靠太湖还有三白（白鱼、白虾、银鱼）。古镇内外餐馆不少，放下行李就近吃一顿，人均约 ¥40–80，吃饱再慢游古镇最舒服。'},
+      {t:'14:30', cat:'文化', name:'木渎古镇', lng:120.5140, lat:31.2520,
+        desc:'与苏州同岁的 2500 年古镇，乾隆六下江南必到之地。严家花园、虹饮山房、古松园沿山塘街铺开，坐摇橹船看粉墙黛瓦。',
+        meta:{'门票':'古镇免费·联票¥78','推荐':'严家花园、摇橹船'}, img:'', info:'木渎古镇全天开放、主街免费，严家花园 / 虹饮山房 / 古松园联票约 ¥78（网购 ¥66），地铁 5 号线灵岩山站 3 号口步行即达。沿山塘街逛严家花园（江南园林教科书）、虹饮山房（乾隆民间行宫）、古松园，再坐一叶摇橹船听船娘吴歌。从木渎悦华酒店步行约 5 分钟即到，傍晚亮灯最有味道。'},
+      {t:'17:30', cat:'景点', name:'木渎 · 摇橹船与茶馆', lng:120.5150, lat:31.2510,
+        desc:'午后在木渎古镇坐一叶摇橹船，听船娘吴歌；沿山塘街找家临河茶馆点壶碧螺春发发呆，江南慢生活就是这么过。',
+        meta:{'推荐':'摇橹船、碧螺春','贴士':'不赶时间慢慢坐'}, img:'', info:'木渎古镇依胥江而建，山塘街一线可坐摇橹船（约 ¥80–120/船，可坐 4–6 人），船娘会唱吴歌。沿河多临水茶馆，点一壶本地碧螺春（¥30–60/壶）看粉墙黛瓦倒影，是江南慢生活的正确打开方式。从木渎悦华酒店步行约 5 分钟即到，整个下午都可悠闲消磨。'}
+    ],
+    backup:[
+      {name:'石湖 · 上方山', cat:'景点', lng:120.5850, lat:31.2500,
+        desc:'紧邻木渎的湖山景区，湖光塔影、环湖步道平缓，可坐观光车 / 缆车轻松览景，不必登山。',
+        meta:{'特色':'湖山、步道平缓','车程':'木渎约15min'}, info:'石湖是苏州西南、紧邻木渎的城市湖山景区，上方山与之相依。环湖步道平缓、骑行 / 散步皆宜，也可坐观光车或缆车上山一览太湖远景，不勉强爬山。秋季桂花飘香，适合作为木渎慢游的轻松延伸，时间充裕时备选半日。'},
+      {name:'甪直古镇', cat:'文化', lng:120.8750, lat:31.2850,
+        desc:'“神州水乡第一镇”，保圣寺唐代泥塑罗汉、水乡妇女服饰与多桥水巷，比周庄更原味安静。',
+        meta:{'特色':'水乡、唐塑','车程':'木渎约30min'}, info:'甪直距木渎约 30min 车程，是苏州另一座原味水乡，以保圣寺半堂唐代泥塑罗汉（国宝）、水乡妇女服饰和“桥多、巷多、古宅多”著称。可坐手摇船穿巷，逛叶圣陶纪念馆，比热门古镇更清静，适合时间充裕时备选慢游。'},
+      {name:'光福 · 太湖', cat:'景点', lng:120.4300, lat:31.1300,
+        desc:'太湖东岸古镇，司徒庙古柏、香雪海秋桂，渔港渔船点点，吃一顿太湖三白最新鲜。',
+        meta:{'特色':'太湖、秋桂','车程':'木渎约30min'}, info:'光福位于太湖东岸，距木渎约 30min。司徒庙“清、奇、古、怪”四株古柏千年依旧，秋日香雪海桂花满山（也以早春梅花闻名）；渔港码头可看太湖渔船、吃现捞太湖三白。是木渎周边最贴近太湖的轻松备选。'}
+    ]},
+    { id:3, date:'9/28', wd:'周一', theme:'古典园林 · 苏式美食 · 评弹夜', plan:'拙政园 → 苏博 →（午餐<b>蟹黄面</b>）→ 留园 →（<b>鑫震源生煎</b>·<b>苏式绿豆汤</b>）→ 平江路，夜晚听 <b>苏州评弹</b>。', flight:'', pois:[
+      {t:'09:00', cat:'文化', name:'拙政园', lng:120.6330, lat:31.3260,
+        desc:'中国四大名园之首，明代江南园林典范。远香堂、小飞虹、留听阁移步换景，沿回廊慢慢走、不赶场。',
+        meta:{'门票':'¥70（旺季）','从木渎地铁':'约50min','建议':'2–3h'}, img:'', info:'拙政园是苏州园林的代表作、世界文化遗产，开放约 7:30–17:30，旺季门票约 ¥70（学生半价、70 岁以上免）。从木渎悦华酒店出发打车约 40min（地铁需 5 号线转 2/4 号线约 50min，按行程原则优先打车），建议早上开门即入，人少光影好，必看远香堂、小飞虹、留听阁与借景北寺塔。穿汉服拍照极出片，顺路可逛隔壁的苏州博物馆。'},
+      {t:'11:00', cat:'文化', name:'苏州博物馆', lng:120.6360, lat:31.3250,
+        desc:'贝聿铭封笔之作，粉墙黛瓦的几何诗意。免费但需预约，馆藏秘色瓷、真珠舍利宝幢值得细看。',
+        meta:{'门票':'免费(需预约)','贴士':'提前公众号预约'}, img:'', info:'苏州博物馆（本馆）由贝聿铭设计，免费开放（周一闭馆，节假日除外），需提前在“苏州博物馆”公众号预约分时段入馆。必看秘色瓷莲花碗、真珠舍利宝幢、吴门书画，建筑本身即是展品——片石假山、光影庭院随手出片。馆内请勿使用闪光灯。'},
+      {t:'12:30', cat:'美食', name:'午餐 · 苏式蟹黄面', lng:120.6180, lat:31.3120,
+        desc:'9 月底正逢大闸蟹上市，来碗苏式蟹黄面 / 秃黄油面——金灿灿的蟹黄拌进细面，鲜得眉毛都要掉。推荐同得兴、朱鸿兴等苏式面馆。',
+        meta:{'招牌':'蟹黄面 / 秃黄油面','人均':'¥40–100','贴士':'蟹季限定'}, img:'', info:'苏式面讲究汤清味浓、面细紧实、浇头考究。蟹黄面 / 秃黄油面是秋季（9–11 月大闸蟹季）限定，蟹黄蟹膏拌面拌饭皆鲜。名店：同得兴（嘉馀坊，秃黄油面约 ¥98 起）、朱鸿兴（焖肉面 / 蟹黄面）、裕面堂。建议 11:00–12:30 前往避开高峰，浇头（焖肉、爆鱼、虾仁）可另点，头汤面最佳。'},
+      {t:'14:00', cat:'文化', name:'留园', lng:120.5880, lat:31.3180,
+        desc:'中国四大名园之一，以“咫尺之内再造乾坤”的厅堂、奇石、回廊著称。慢逛漏窗、冠云峰，体会园主闲情。',
+        meta:{'门票':'¥45–55','贴士':'与拙政园齐名'}, img:'', info:'留园与拙政园、颐和园、承德避暑山庄并称中国四大名园，开放约 7:30–17:30，门票约 ¥45–55。以建筑空间取胜——涵碧山房、明瑟楼、冠云峰（江南名石）与层层漏窗移步换景。地铁 2 号线留园路站附近，建议游玩 1.5–2 小时。'},
+      {t:'15:30', cat:'美食', name:'下午点心 · 鑫震源生煎', lng:120.6250, lat:31.3130,
+        desc:'苏州人气生煎老店鑫震源，苏式生煎底脆、皮薄、汤多，一口一个；再配一笼蟹粉小笼，逛累园林后的元气补给。',
+        meta:{'招牌':'生煎馒头、蟹粉小笼','人均':'¥20–30','贴士':'趁热吃'}, img:'', info:'鑫震源是苏州本地知名生煎连锁（观前街、石路等多家分店），招牌生煎馒头底部金黄焦脆、内里汤汁饱满，蟹粉小笼、虾仁小笼也很受欢迎，人均约 ¥20–30。下午逛完园林、往平江路方向走的路上正好当点心垫垫肚，趁热咬开先吸汤汁最香。'},
+      {t:'16:00', cat:'美食', name:'消暑甜品 · 苏式绿豆汤', lng:120.6280, lat:31.3160,
+        desc:'苏式绿豆汤和别处不同——糯米饭、绿豆、红绿丝、蜜枣冬瓜糖，浇上薄荷凉水，甜润清爽、透心凉。平江路口来一碗刚刚好。',
+        meta:{'推荐':'苏式绿豆汤、糖粥','人均':'¥10–20','贴士':'潘玉麟糖粥等'}, img:'', info:'苏式绿豆汤讲究“料足”：煮糯米饭 + 绿豆 + 红绿丝 + 蜜枣 + 冬瓜糖，再浇薄荷糖水，冰凉甜润，是苏州夏秋消暑名点，与北方纯绿豆汤截然不同。推荐潘玉麟糖粥（临顿路 / 观前一带）、朱新年、桃花源记，人均约 ¥10–20，配桂花糖粥、赤豆小圆子更满足。'},
+      {t:'16:30', cat:'景点', name:'平江路 · 水巷慢步', lng:120.6320, lat:31.3180,
+        desc:'苏州保存最完整的老城水巷，白墙黛瓦、小桥流水。沿河慢慢走，逛逛文艺小店、吃碗糖粥，不赶场。',
+        meta:{'门票':'免费','推荐':'文艺小店、糖粥'}, img:'', info:'平江路是苏州古城保存最好的历史街区，与河水平行的步道两旁是白墙黛瓦的老宅与文艺小店。可乘手摇船（约 ¥150/船），也可纯步行发呆。推荐鸡脚旮旯、桃花源记，傍晚灯笼亮起最有味道。从木渎悦华酒店打车约 40min 达（地铁约 50min，优先打车），建议傍晚慢逛 1–1.5 小时。'},
+      {t:'19:30', cat:'文化', name:'苏州评弹', lng:120.6300, lat:31.3170,
+        desc:'钻进平江路 / 山塘街的评弹书场，点一壶碧螺春，听一曲《珍珠塔》《枫桥夜泊》。吴侬软语、三弦琵琶，最江南的夜晚。',
+        meta:{'推荐':'评弹书场、碧螺春','贴士':'傍晚场次更佳'}, img:'',         info:'苏州评弹是国家级非遗，用苏州方言演唱，三弦、琵琶伴奏。推荐去平江路上的「伏羲琴馆」「苏州评弹博物馆（中张家巷）」或山塘街书场，票价约 ¥30–80/人，下午 / 晚间均有场次（每场约 1 小时）。热门场次建议提前在「苏州评弹」公众号或美团订座。点壶茶静静听一曲，是慢游苏州最地道的收尾。'},
+      {t:'20:30', cat:'交通', name:'夜归 · 返木渎悦华', lng:120.5167, lat:31.2505,
+        desc:'评弹散场后从平江路 / 山塘街打车返回木渎悦华酒店（约 40min、¥70–90）。地铁需转线约 1h 偏久，按行程原则优先打车，省时省力。',
+        meta:{'返程':'打车优先','时长':'约40min','贴士':'提前叫车'}, img:'', info:'平江路 / 山塘街距木渎悦华酒店约 12–15km。按“短距离地铁、地铁超 20min 改打车”的原则，这一段地铁需 1 / 4 号线转 5 号线约 1h，明显超 20min，故优先打车直达约 40min、¥70–90（末班地铁约 22:30–23:00，深夜有空车风险）；建议散场前提前叫车，从容回酒店养精蓄锐，为次日周庄之行做准备。'}
+    ],
+    backup:[
+      {name:'网师园', cat:'文化', lng:120.6280, lat:31.3050,
+        desc:'苏州最小最精的园林，咫尺乾坤；夜间“网师园夜游”有昆曲评弹实景演出，极为惊艳。',
+        meta:{'特色':'精致园林、夜游','门票':'¥30–40'}, info:'网师园是苏州园林中面积最小却最见功力的一座，亭台水景紧凑雅致，距平江路不远。其“网师园夜游”为实景版昆曲 / 评弹演出（约 19:30 起，¥100 左右），在古园灯下听曲，是 DAY3 评弹之外的更高阶备选。白天门票约 ¥30–40。'},
+      {name:'寒山寺', cat:'文化', lng:120.5700, lat:31.2980,
+        desc:'“姑苏城外寒山寺，夜半钟声到客船”，枫桥边的诗意古刹，听一口唐钟、走一走枫桥。',
+        meta:{'特色':'诗意古刹','门票':'¥20'}, info:'寒山寺因张继《枫桥夜泊》名扬天下，位于苏州城西枫桥镇。可听寒山钟、访碑廊、走枫桥看古运河，是极具诗意的文化备选。距木渎打车约 30min，门票约 ¥20，傍晚钟声最有味道。'},
+      {name:'金鸡湖 · 诚品书店', cat:'景点', lng:120.7350, lat:31.3250,
+        desc:'现代苏州的另一面——湖滨步道、摩天轮、音乐喷泉，以及诚品书店的文创与咖啡。',
+        meta:{'特色':'现代苏州、湖滨','车程':'木渎约35min'}, info:'金鸡湖是苏州工业园区的新名片，与古城园林形成反差：湖滨大道散步、看“东方之门”摩天楼、坐摩天轮、傍晚音乐喷泉。诚品书店（大陆首店）集书、文创、咖啡于一体，适合作为园林之外的现代休闲备选，距木渎打车约 35min。'}
+    ]},
+    { id:4, date:'9/29', wd:'周二', theme:'周庄水乡 · 苏州南高铁 · MU2407 返程', plan:'早上 <b>木渎退房</b> 带行李赴周庄，游客服务中心寄存后漫游水乡；16:30 赴苏州南，<b>17:30 高铁</b>赴虹桥乘 <b>MU2407</b> 返程榆次。', flight:`<div class="flight">
+  <h3>✈ 返程交通 · 周庄水乡 → 苏州南 → 榆次 <span class="pick">9/29 周二</span></h3>
+  <div class="route">周庄 → 苏州南站 🚄 <b>高铁</b> → 上海虹桥 ✈ <b>MU2407</b> → 太原武宿 →（打车）→ 榆次</div>
+  <div class="cmp">
+    <div class="cmp-t">🎫 9/29 返程航班（中国东方航空 · 经济舱 · <b>4 人合计</b>，已含机建燃油费）</div>
+    <div class="tax">机建燃油费 = 民航发展基金 ¥50 + 燃油附加费 ¥100（2026）= <b>¥150 / 人 / 单程</b>（4 人 = ¥600）。时刻为参考，以购票时为准。</div>
+    <table>
+      <thead><tr><th>航班</th><th>航司</th><th>起飞 → 到达</th><th>4人票价</th><th>机建燃油</th><th>4人合计</th></tr></thead>
+      <tbody>
+        <tr class="best"><td>MU2407</td><td>东航</td><td>上海虹桥 T2 21:25 → 太原武宿 T2 23:35</td><td>¥3920</td><td>+¥600</td><td class="sum">¥4520</td></tr>
+      </tbody>
+    </table>
+    <div class="note">💡 <b>MU2407</b> 中国东方航空，上海虹桥 T2 21:25 起飞、23:35 到太原武宿 T2（与去程反向、同枢纽）。9/29 早上木渎悦华退房、带行李赴周庄并到【游客服务中心】寄存，轻装游水乡；约 16:30 从周庄赴<b>苏州南站</b>，乘 <b>17:30 沪苏湖高铁</b>到上海虹桥（二等座约 ¥34/人、4 人约 ¥136，车程约 40min），抵达后转地铁 / 步行到虹桥 T2 办值机，从容赶上 21:25 航班。</div>
+  </div>
+  <div class="arr">DAY4 早上木渎退房带行李赴周庄（寄存行李漫游水乡），午后从苏州南乘高铁赴虹桥乘 MU2407 返程（9/26 到的也是虹桥，完美闭环）。</div>
+</div>`, pois:[
+      {t:'09:00', cat:'景点', name:'周庄古镇', lng:120.8510, lat:31.1120,
+        desc:'中国第一水乡，双桥、沈厅、张厅沿水铺开。早上木渎悦华退房、带行李打车约 1h 到周庄，先到【游客服务中心】寄存行李，再轻装坐摇橹船、漫游水巷。',
+        meta:{'门票':'¥100（联票）','推荐':'双桥、摇橹船','寄存':'游客服务中心'}, img:'', info:'周庄位于苏州东南约 38km，9/29 早上木渎悦华退房后带行李打车 / 包车约 1h 到周庄。到镇口【游客服务中心】免费寄存行李（凭门票 / 身份证），轻装游双桥、沈厅、张厅，坐摇橹船（¥80–120/船）看水上明清老宅，午后在临河茶馆点碧螺春。开放约 7:30–21:00，联票 ¥100（网购 ¥88）。'},
+      {t:'16:30', cat:'景点', name:'周庄 → 苏州南站', lng:120.8550, lat:31.1050,
+        desc:'游玩结束，从周庄打车 / 公交约 40min 到苏州南站（沪苏湖高铁站），先在游客服务中心取回行李，准备乘 17:30 高铁赴上海虹桥。',
+        meta:{'方式':'打车 / 公交','时长':'约40min','贴士':'预留取行李时间'}, img:'', info:'周庄距苏州南站（吴江区，沪苏湖高铁）约 30–40km，打车约 40min（约 ¥120–160）。先在游客服务中心取回行李，再前往车站。苏州南站有直达上海虹桥的高铁（沪苏湖线），是周庄返沪最顺的铁路口岸。'},
+      {t:'17:30', cat:'交通', name:'苏州南 → 上海虹桥 · 高铁', lng:120.6550, lat:31.0500,
+        desc:'乘沪苏湖高铁从苏州南站到上海虹桥，二等座约 ¥34/人、4 人约 ¥136，车程约 40min。抵达虹桥后转地铁 / 步行到 T2 办值机。',
+        meta:{'高铁':'苏州南→虹桥','二等座':'约¥34/人','4人':'约¥136','时长':'约40min'}, img:'', info:'苏州南 → 上海虹桥 高铁（沪苏湖线）二等座约 ¥31–41/人，取 ¥34/人估算，4 人约 ¥136（单程）。车程约 34–48min（多为 40min 左右），班次密集（G8352、G7148、G1500 等，白天每 10–20min 一班）。约 18:10 到虹桥，距 MU2407 起飞还有约 3 小时，可在 T2 附近吃晚饭 / 逛逛，从容候机。抵达上海虹桥站后与虹桥 T2 同枢纽，地铁 2 号线 1 站或步行约 15min 即到办值机。'},
+      {t:'21:25', cat:'景点', name:'上海虹桥 T2 · MU2407 起飞', lng:121.3180, lat:31.1940,
+        desc:'中国东方航空 MU2407，上海虹桥 T2 21:25 起飞，约 2h10min 直达太原武宿 T2。4 人合计 ¥4520（含机建燃油）。',
+        meta:{'航班':'MU2407 东航','起飞':'21:25 虹桥T2','票价':'4人¥4520'}, img:'', info:'MU2407 由中国东方航空执飞，上海虹桥 T2 21:25 起飞、23:35 抵达太原武宿 T2，机型波音 737-800，飞行约 2 小时 10 分。4 人票价 ¥3920 + 机建燃油 ¥600 = ¥4520（含机建燃油）。建议提前 2 小时（19:25 前）到虹桥 T2 办值机。落地后打车约 ¥45–60 / 25min 回榆次。'},
+      {t:'23:35', cat:'景点', name:'太原武宿 T2 · 抵达榆次', lng:112.6283, lat:37.7467,
+        desc:'MU2407 落地太原武宿 T2，打车约 25min 回榆次，四日江南行圆满收官。',
+        meta:{'到达':'TYN 武宿 T2','回榆次':'打车约25min'}, img:'', info:'太原武宿国际机场距榆次约 25 公里、打车 45–60 元 / 25 分钟。MU2407 约 23:35 落地，取行李后打车回榆次，结束苏州四日深度游。'}
+    ],
+    backup:[
+      {name:'锦溪古镇', cat:'文化', lng:120.9350, lat:31.1350,
+        desc:'距周庄仅约 8km 的“中国民间博物馆之乡”，古莲桥、陈妃水冢，比周庄更安静原味。',
+        meta:{'特色':'安静水乡、博物馆','车程':'周庄约15min'}, info:'锦溪距周庄仅约 8km，却安静许多，被称为“中国民间博物馆之乡”——古砖瓦博物馆、壶具馆散落水巷。古莲桥倒影、陈妃水冢、沿河茶馆皆宜慢坐。若周庄人多或时间充裕，锦溪是最近的优质备选（周庄打车约 15min）。'},
+      {name:'同里古镇', cat:'文化', lng:120.7300, lat:31.1550,
+        desc:'“醇正水乡”，退思园为世界文化遗产；三桥、珍珠塔、罗星洲，水网更密更幽。',
+        meta:{'特色':'世遗退思园','车程':'周庄约40min'}, info:'同里距周庄约 40min，是另一座完整保存的水乡，退思园为世界文化遗产（江南园林典范）。三桥、珍珠塔、罗星洲（湖中寺）各具意趣，水巷比周庄更密更幽。适合在周庄游毕、赴苏州南之前顺路延展的备选。'}
+    ]}
+  ];
+
+  /* ===== 顶部徽章 ===== */
+  const totalPoi = DAYS.reduce((s,d)=>s+d.pois.length,0);
+  // 4人总预算（已含往返机票 + 两段酒店 + 交通 + 门票估算）：去程HO132 + 汉庭虹桥 + 木渎悦华 + 返程MU2407 + 交通 + 门票(估)
+  const FLIGHT_4 = 2760;            // HO132：2600+600-440（去程）
+  const HANTING_4 = 370;            // 汉庭虹桥 高级双床房 ¥185/间 × 2 间 = ¥370（9/26 当晚）
+  const MUUDU_HOTEL_4 = 1870;       // 木渎悦华 扇衾套房 4人2晚（9/27–29）
+  const RETURN_4 = 4520;            // MU2407：3920+600（返程，含机建燃油）
+  const TRANSIT_4 = 920;            // 去程高铁虹桥→苏州¥180 + 返程高铁苏州南→虹桥¥136 + 木渎↔周庄/周庄↔苏州南打车≈¥330 + 市内地铁打车≈¥274
+  const LOCAL_4 = 1180;             // 当地消费（估算）：仅门票(拙政园¥70+虎丘¥70+留园¥55+周庄¥100)×4 ≈ ¥1180（餐饮、应急等费用已取消）
+  const BUDGET = FLIGHT_4 + HANTING_4 + MUUDU_HOTEL_4 + RETURN_4 + TRANSIT_4 + LOCAL_4; // 11500
+  document.getElementById('badges').innerHTML = `
+    <div class="badge"><div class="v">${DAYS.length}</div><div class="k">天数 DAYS</div></div>
+    <div class="badge"><div class="v">${totalPoi}</div><div class="k">POI 数</div></div>
+    <div class="badge"><div class="v">¥${BUDGET.toLocaleString()}</div><div class="k">4人总预算</div></div>`;
+  // 预算分项明细（自动计算；含往返机票 + 两段酒店）
+  document.getElementById('budgetBar').innerHTML =
+    `去程 <b>HO132 ¥${FLIGHT_4}</b> ＋ 汉庭虹桥 <b>¥${HANTING_4}</b> ＋ 木渎酒店 <b>¥${MUUDU_HOTEL_4}</b> ＋ 返程 <b>MU2407 ¥${RETURN_4}</b> ＋ 交通 <b>¥${TRANSIT_4}</b> ＋ 门票(估) <b>¥${LOCAL_4}</b>` +
+    ` ＝ <b class="bb">4人 ¥${BUDGET.toLocaleString()}</b>（人均¥${(BUDGET/4).toLocaleString()}）`;
+
+  /* ===== 地图初始化（高德免 Key 栅格瓦片）===== */
+  const map = L.map('map',{zoomControl:false, attributionControl:false}).setView([31.30,120.62],12);
+  // 瓦片三级回退：高德(主) → 腾讯(国内可达) → OSM(兜底)，任一加载失败自动切换下一级
+  (function(){
+    const providers = [
+      ()=>L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7',{subdomains:'1234', maxZoom:18, attribution:'高德地图'}),
+      ()=>L.tileLayer('https://rt{s}.map.gtimg.com/tile?z={z}&x={x}&y={y}&type=vector&style=0&version=275',{subdomains:'0123', maxZoom:18, attribution:'腾讯地图'}),
+      ()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{subdomains:'abc', maxZoom:19, attribution:'OpenStreetMap'})
+    ];
+    let pi=0, switched=false;
+    const addLayer=()=>{ const layer=providers[pi](); layer.on('tileerror',()=>{ if(!switched && pi<providers.length-1){ switched=true; try{map.removeLayer(layer);}catch(e){} pi++; addLayer(); } }); layer.addTo(map); };
+    addLayer();
+  })();
+  const poiLayer = L.layerGroup().addTo(map);
+  const hotelLayer = L.layerGroup().addTo(map);
+  const markers = []; // {poi, marker}
+  const hotelMarkers = []; // 酒店标记引用，按 HOTELS 顺序
+
+  /* 全程住宿（两段）：汉庭虹桥(9/26) + 木渎悦华(9/27–29) */
+  const HOTELS = [
+    {name:'汉庭酒店（上海虹桥枢纽火车站店）', star:'★★ 经济型 · 高性价比', price:'高级双床房 ¥185/间 · 2 间（共 ¥370，9/26 当晚）', lat:31.1930, lng:121.3000, rec:false},
+    {name:'苏州木渎万达悦华度假酒店', star:'★★★★ 高档型 · 度假', price:'扇衾家庭套房 · 4人2晚 ¥1870（9/27–29）', lat:31.2505, lng:120.5167, rec:true}
+  ];
+
+  function pinIcon(idx, color){
+    return L.divIcon({
+      className:'', iconSize:[26,26], iconAnchor:[13,26], popupAnchor:[0,-24],
+      html:`<div class="marker-pin" style="background:${color}"><span>${idx}</span></div>`
+    });
+  }
+
+  /* 各地点图片（图片爬虫采集 · 本地化 · 多图轮播，完整显示） */
+  const POI_IMAGES = {
+    "taiyuan_airport":["imgs_sz/taiyuan_airport/taiyuan_airport_1.jpg","imgs_sz/taiyuan_airport/taiyuan_airport_2.jpg","imgs_sz/taiyuan_airport/taiyuan_airport_3.jpg","imgs_sz/taiyuan_airport/taiyuan_airport_4.jpg","imgs_sz/taiyuan_airport/taiyuan_airport_5.jpg"],
+    "hongqiao":["imgs_sz/hongqiao/hongqiao_1.jpg","imgs_sz/hongqiao/hongqiao_2.jpg","imgs_sz/hongqiao/hongqiao_3.jpg","imgs_sz/hongqiao/hongqiao_4.jpg","imgs_sz/hongqiao/hongqiao_5.jpg"],
+    "transit_hotel":["imgs_sz/transit_hotel/transit_hotel_1.jpg","imgs_sz/transit_hotel/transit_hotel_2.jpg","imgs_sz/transit_hotel/transit_hotel_3.jpg","imgs_sz/transit_hotel/transit_hotel_4.jpg","imgs_sz/transit_hotel/transit_hotel_5.jpg"],
+    "hanting":["imgs_sz/hanting/hanting_1.jpg"],
+    "mudu_hotel":["imgs_sz/mudu_hotel/mudu_hotel_1.jpg","imgs_sz/mudu_hotel/mudu_hotel_2.jpg","imgs_sz/mudu_hotel/mudu_hotel_3.jpg","imgs_sz/mudu_hotel/mudu_hotel_4.jpg","imgs_sz/mudu_hotel/mudu_hotel_5.jpg"],
+    "mudu":["imgs_sz/mudu/mudu_1.jpg","imgs_sz/mudu/mudu_2.jpg","imgs_sz/mudu/mudu_3.jpg","imgs_sz/mudu/mudu_4.jpg","imgs_sz/mudu/mudu_5.jpg"],
+    "suzhou_station":["imgs_sz/suzhou_station/suzhou_station_1.jpg","imgs_sz/suzhou_station/suzhou_station_2.jpg","imgs_sz/suzhou_station/suzhou_station_3.jpg","imgs_sz/suzhou_station/suzhou_station_4.jpg","imgs_sz/suzhou_station/suzhou_station_5.jpg"],
+    "pingjiang":["imgs_sz/pingjiang/pingjiang_1.jpg","imgs_sz/pingjiang/pingjiang_2.jpg","imgs_sz/pingjiang/pingjiang_3.jpg","imgs_sz/pingjiang/pingjiang_4.jpg","imgs_sz/pingjiang/pingjiang_5.jpg"],
+    "guanqian":["imgs_sz/guanqian/guanqian_1.jpg","imgs_sz/guanqian/guanqian_2.jpg","imgs_sz/guanqian/guanqian_3.jpg","imgs_sz/guanqian/guanqian_4.jpg","imgs_sz/guanqian/guanqian_5.jpg"],
+    "zhuozheng":["imgs_sz/zhuozheng/zhuozheng_1.jpg","imgs_sz/zhuozheng/zhuozheng_2.jpg","imgs_sz/zhuozheng/zhuozheng_3.jpg","imgs_sz/zhuozheng/zhuozheng_4.jpg","imgs_sz/zhuozheng/zhuozheng_5.jpg"],
+    "sumuseum":["imgs_sz/sumuseum/sumuseum_1.jpg","imgs_sz/sumuseum/sumuseum_2.jpg","imgs_sz/sumuseum/sumuseum_3.jpg","imgs_sz/sumuseum/sumuseum_4.jpg","imgs_sz/sumuseum/sumuseum_5.jpg"],
+    "huqiu":["imgs_sz/huqiu/huqiu_1.jpg","imgs_sz/huqiu/huqiu_2.jpg","imgs_sz/huqiu/huqiu_3.jpg","imgs_sz/huqiu/huqiu_4.jpg","imgs_sz/huqiu/huqiu_5.jpg"],
+    "shantang":["imgs_sz/shantang/shantang_1.jpg","imgs_sz/shantang/shantang_2.jpg","imgs_sz/shantang/shantang_3.jpg","imgs_sz/shantang/shantang_4.jpg","imgs_sz/shantang/shantang_5.jpg"],
+    "liuyuan":["imgs_sz/liuyuan/liuyuan_1.jpg","imgs_sz/liuyuan/liuyuan_2.jpg","imgs_sz/liuyuan/liuyuan_3.jpg","imgs_sz/liuyuan/liuyuan_4.jpg","imgs_sz/liuyuan/liuyuan_5.jpg"],
+    "zhouzhuang":["imgs_sz/zhouzhuang/zhouzhuang_1.jpg","imgs_sz/zhouzhuang/zhouzhuang_2.jpg","imgs_sz/zhouzhuang/zhouzhuang_3.jpg","imgs_sz/zhouzhuang/zhouzhuang_4.jpg","imgs_sz/zhouzhuang/zhouzhuang_5.jpg"],
+  };
+  const NAME2SLUG = {
+    "上海虹桥 · 汉庭酒店":"hanting",
+    "木渎古镇":"mudu",
+    "木渎 · 摇橹船与茶馆":"mudu",
+    "平江路 · 水巷慢步":"pingjiang",
+    "平江路":"pingjiang",
+    "观前街":"guanqian",
+    "苏州评弹":"shantang",
+    "拙政园":"zhuozheng",
+    "苏州博物馆":"sumuseum",
+    "虎丘 · 云岩寺塔（夯爆了！）":"huqiu",
+    "山塘街":"shantang",
+    "留园":"liuyuan",
+    "周庄古镇":"zhouzhuang"
+  };
+
+  /* ===== 渲染某一天 ===== */
+  let activeDay = 1;
+  let activeHotelIdx = -1;
+  /* 单页切换：overview（全程规划页）与 dayView（当日页）互斥显示，并播放淡入 */
+  function showPage(which){
+    const ov = document.getElementById('overview'), dv = document.getElementById('dayView');
+    if(!ov || !dv) return;
+    [ov,dv].forEach(el=>el.classList.remove('reveal'));
+    if(which==='overview'){ ov.style.display=''; dv.style.display='none'; }
+    else { dv.style.display=''; ov.style.display='none'; }
+    const el = (which==='overview') ? ov : dv;
+    void el.offsetWidth; el.classList.add('reveal');
+  }
+  function renderDay(id){
+    activeDay = id;
+    const day = DAYS.find(d=>d.id===id);
+    document.getElementById('flightSlot').innerHTML = day.flight || '';
+    // tabs
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', +t.dataset.id===id));
+    showPage('day');
+    // day head
+    document.getElementById('dayN').textContent = `DAY ${id} · ${day.date} ${day.wd}`;
+    document.getElementById('dayT').textContent = day.theme;
+    document.getElementById('mapTitle').innerHTML = `DAY ${id} · ${day.date} ${day.wd}<small>${day.theme}</small><span class="legend-hotel"><i></i>推荐酒店</span>`;
+    // timeline
+    const tl = document.getElementById('timeline');
+    tl.innerHTML = day.pois.map((p,i)=>{
+      const col = CAT[p.cat].c;
+      const meta = Object.entries(p.meta).map(([k,v])=>`<span><b>${k}</b> ${v}</span>`).join('');
+      return `<div class="card enter" data-idx="${i}" style="animation-delay:${Math.min(i*65,480)}ms">
+        ${(()=>{ const slug = NAME2SLUG[p.name]; const arr = (slug && POI_IMAGES[slug]) || []; if(!arr.length) return p.img ? `<img class="poi-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">` : ''; return `<div class="poi-gallery"><div class="pg-track">${arr.map((s,i)=>`<img class="pg-img${i===0?' on':''}" src="${s}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`).join('')}</div>${arr.length>1?`<button class="pg-nav pg-prev" type="button" aria-label="上一张">‹</button><button class="pg-nav pg-next" type="button" aria-label="下一张">›</button><div class="pg-count"><span class="pg-cur">1</span>/${arr.length}</div><div class="pg-dots">${arr.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>`:''}</div>`; })()}
+        <span class="dot" style="background:${col}"></span>
+        <div class="row1">
+          <span class="time">${p.t}</span>
+          <span class="tag" style="background:${col}">${CAT[p.cat].i} ${p.cat}</span>
+          <span class="name">${p.name}</span>
+        </div>
+        <div class="desc">${p.desc}</div>
+        ${p.info ? `<div class="play"><span class="play-t">🧭 攻略</span>${p.info}</div>` : ''}
+        <div class="meta">${meta}</div>
+      </div>`;
+    }).join('');
+    // bind card click -> fly
+    tl.querySelectorAll('.card').forEach(card=>{
+      card.addEventListener('click',()=>{
+        const idx = +card.dataset.idx;
+        highlightCard(idx);
+        scrollToMap();     // 竖版：先把地图滚到视野
+        flyToPoi(idx);     // 再飞到该点
+      });
+    });
+
+    // 多图轮播交互：左右箭头 / 圆点 / 触摸滑动（显示完整图、按原比例、无白边）
+    initGalleries(tl);
+    // 备选景点（时间充裕时）→ 独立区块，不计入时间线地图编号
+    let backupMarkers = [];
+    const bk = document.getElementById('backupSlot');
+    if(day.backup && day.backup.length){
+      bk.innerHTML = `<div class="backup-sec"><div class="backup-sec-h"><span class="bh-ic">🗺️</span>备选景点 <small>· 时间充裕时随兴前往</small></div><div class="backup-grid">` +
+        day.backup.map((p,i)=>{
+          const col = CAT[p.cat].c;
+          const meta = Object.entries(p.meta).map(([k,v])=>`<span><b>${k}</b> ${v}</span>`).join('');
+          return `<div class="bcard" data-bk="${i}" style="animation-delay:${Math.min(i*70,420)}ms">
+            <span class="bd-go">→</span>
+            <div class="bd-row"><span class="bd-tag" style="background:${col}">${CAT[p.cat].i} ${p.cat}</span><span class="bd-name">${p.name}</span></div>
+            <div class="bd-desc">${p.desc}</div>
+            <div class="bd-meta">${meta}</div>
+          </div>`;
+        }).join('') + `</div></div>`;
+      bk.querySelectorAll('.bcard').forEach(card=>{
+        card.addEventListener('click',()=>{
+          const idx = +card.dataset.bk;
+          const p = day.backup[idx];
+          map.flyTo([p.lat,p.lng], 14, {duration:1.0});
+          setTimeout(()=>{ if(backupMarkers[idx]) backupMarkers[idx].openPopup(); }, 600);
+        });
+      });
+    } else { bk.innerHTML = ''; }
+    // 当日相关酒店卡片（DAY1 汉庭 / DAY2 木渎，其余天无）→ 仅保留与当日相关的信息卡片
+    const hs = document.getElementById('hotelSlot');
+    if(hs){
+      const hi = (day.hotel != null) ? day.hotel : null;
+      hs.innerHTML = (hi != null) ? hotelCardHtml(hi) : '';
+      if(hi != null && activeHotelIdx === hi){
+        const el = hs.querySelector('.ht'); if(el) el.classList.add('active');
+      }
+      initGalleries(hs);
+    }
+    // map markers + polyline（按“日”标注当日行程：当日 POI 编号针 + 酒店针 + 当日路线）
+    poiLayer.clearLayers(); markers.length = 0;
+    hotelLayer.clearLayers(); hotelMarkers.length = 0;
+    // 酒店标记：仅当天有住宿才标注（DAY1 汉庭虹桥 / DAY2–3 木渎悦华；DAY4 飞行回家不标）
+    const hid = (day.hotel != null) ? day.hotel : null;
+    if(hid != null){
+      const h = HOTELS[hid];
+      const ic = L.divIcon({className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-14],
+        html:`<div class="hotel-pin${h.rec?' rec':''}">🏨</div>`});
+      const m = L.marker([h.lat,h.lng],{icon:ic}).addTo(hotelLayer);
+      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><small>${hid===0?'上海 · 虹桥枢纽':'苏州 · 木渎古镇旁'}</small>`);
+      hotelMarkers[0] = m;
+    }
+    const pts = [];
+    day.pois.forEach((p,i)=>{
+      // 太原为返程飞行终点（跨省），不标在苏州/上海当日地图上，避免地图被拉到全国尺度（与全程页一致）
+      if(/太原/.test(p.name)) return;
+      const col = CAT[p.cat].c;
+      const m = L.marker([p.lat,p.lng],{icon:pinIcon(i+1,col)}).addTo(poiLayer);
+      m.bindPopup(`<b>${i+1}. ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}`);
+      m.on('click',()=>highlightCard(i));
+      markers[i] = {poi:p, marker:m};
+      pts.push([p.lat,p.lng]);
+    });
+    // 备选针（空心环，独立于时间线，不连路线，但纳入地图视野）
+    const fitPts = pts.slice();
+    if(day.backup && day.backup.length){
+      day.backup.forEach((p,i)=>{
+        if(/太原/.test(p.name)) return;
+        const m = L.marker([p.lat,p.lng],{icon:L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-12], html:`<div class="bk-pin">备</div>`})}).addTo(poiLayer);
+        m.bindPopup(`<b>备选 · ${p.name}</b><br>${CAT[p.cat].i}${p.cat}`);
+        backupMarkers[i] = m;
+        fitPts.push([p.lat,p.lng]);
+      });
+    }
+    if(pts.length>1){
+      L.polyline(pts,{color:'#0071e3', weight:3, opacity:.65, dashArray:'6,8'}).addTo(poiLayer);
+    }
+    if(fitPts.length){ map.fitBounds(fitPts,{padding:[60,60]}); }
+    else { // DAY1 无游玩 POI：以当日酒店为中心
+      const hid = (day.hotel != null) ? day.hotel : (id===1?0:1);
+      const h = HOTELS[hid];
+      map.setView([h.lat,h.lng], 15);
+    }
+
+    // 切换 DAY：日期标题重新播放淡入（强制重排以重启动画）
+    [document.querySelector('.dayhead')].forEach(el=>{
+      if(!el) return; el.classList.remove('reveal'); void el.offsetWidth; el.classList.add('reveal');
+    });
+  }
+
+  /* 全程规划页（独立的“总览”页，置于 DAY1 之前）：展示往返交通 + 全程住宿 + 旅行规划，地图标出两家酒店 */
+  function renderOverviewPage(){
+    activeDay = 0;
+    showPage('overview');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', !!t.dataset.overview));
+    document.getElementById('mapTitle').innerHTML = `全程规划 · 4 日游总览<small>往返交通 · 全程住宿 · 旅行规划</small>` +
+      `<span class="legend-cat"><i style="background:#0071e3"></i>景点<i style="background:#ff6b35"></i>美食<i style="background:#8e54e9"></i>文化<i style="background:#00b894"></i>购物<i style="background:#e2452f"></i>交通<i style="background:#0d9488;border:2px solid #ffd166"></i>酒店</span>`;
+    // 地图：标出两家酒店 + 4 日苏州/上海全部行程 POI（太原飞行端点不在苏州/上海范围内，剔除）
+    poiLayer.clearLayers(); markers.length = 0;
+    hotelLayer.clearLayers(); hotelMarkers.length = 0;
+    // 两家酒店
+    HOTELS.forEach((h,i)=>{
+      const ic = L.divIcon({className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-14],
+        html:`<div class="hotel-pin${h.rec?' rec':''}">🏨</div>`});
+      const m = L.marker([h.lat,h.lng],{icon:ic}).addTo(hotelLayer);
+      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}`);
+      hotelMarkers[i] = m;
+    });
+    // 全部行程 POI（按天遍历，号码标在针上表示所属 DAY；剔除太原飞行端点）
+    const pts = [];
+    DAYS.forEach(day=>{
+      day.pois.forEach(p=>{
+        if(/太原/.test(p.name)) return;   // 太原为飞行起降点，不在苏州/上海行程范围
+        const col = CAT[p.cat].c;
+        const m = L.marker([p.lat,p.lng],{icon:pinIcon(day.id, col)}).addTo(poiLayer);
+        m.bindPopup(`<b>DAY ${day.id} · ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}`);
+        markers.push({poi:p, marker:m});
+        pts.push([p.lat,p.lng]);
+      });
+    });
+    HOTELS.forEach(h=>pts.push([h.lat,h.lng]));
+    if(pts.length) map.fitBounds(pts,{padding:[60,60]});
+  }
+
+  function flyToPoi(idx){
+    const m = markers[idx]; if(!m) return;
+    map.flyTo([m.poi.lat, m.poi.lng], 16, {duration:1.0});
+    setTimeout(()=>m.marker.openPopup(), 600);
+  }
+  function highlightCard(idx){
+    document.querySelectorAll('.card').forEach(c=>c.classList.toggle('active', +c.dataset.idx===idx));
+  }
+
+  /* ===== 竖版/横版差异化滚动辅助 ===== */
+  /* 判断是否为紧凑布局：窄屏 或 矮视口横屏（手机横屏/折叠屏） */
+  const isCompact = ()=> window.matchMedia('(max-width:860px), (max-height:520px)').matches;
+  // 切换 DAY 时：回到该页顶端（紧凑布局滚窗口，桌面宽屏滚左栏）
+  function scrollToTop(){
+    if(isCompact()){ window.scrollTo({top:0, behavior:'smooth'}); }
+    else { const l=document.querySelector('.left'); if(l) l.scrollTo({top:0, behavior:'smooth'}); }
+  }
+  // 点击定位：紧凑布局把地图滚动到可视区（桌面横版地图常驻，无需滚动）
+  function scrollToMap(){
+    if(!isCompact()) return;
+    const r=document.querySelector('.right'); if(!r) return;
+    const bar=document.getElementById('topbar');
+    const barH = bar ? bar.getBoundingClientRect().height : 0;   // 冻结标题+标签高度
+    const rect = r.getBoundingClientRect();
+    // 让地图顶部完整落在冻结顶栏下方（不重叠），完整显示整块地图卡片
+    const target = rect.top + window.scrollY - barH - 6;
+    window.scrollTo({top: Math.max(0, target), behavior:'smooth'});
+    setTimeout(()=>map.invalidateSize(), 300);
+  }
+
+  /* 生成轮播 HTML（完整显示、按原比例、无白边、可左右切换） */
+  function galleryHtml(arr, alt){
+    if(!arr || !arr.length) return '';
+    if(arr.length === 1) return `<div class="poi-gallery"><div class="pg-track"><img class="pg-img on" src="${arr[0]}" alt="${alt}" loading="lazy" onerror="this.style.display='none'"></div></div>`;
+    return `<div class="poi-gallery"><div class="pg-track">${arr.map((s,i)=>`<img class="pg-img${i===0?' on':''}" src="${s}" alt="${alt}" loading="lazy" onerror="this.style.display='none'">`).join('')}</div><button class="pg-nav pg-prev" type="button" aria-label="上一张">‹</button><button class="pg-nav pg-next" type="button" aria-label="下一张">›</button><div class="pg-count"><span class="pg-cur">1</span>/${arr.length}</div><div class="pg-dots">${arr.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div></div>`;
+  }
+
+  /* 轮播交互初始化（作用于某个根节点下所有 .poi-gallery） */
+  function initGalleries(root){
+    root.querySelectorAll('.poi-gallery').forEach(g=>{
+      const imgs = g.querySelectorAll('.pg-img');
+      const n = imgs.length; if(n<=1) return;
+      const cur = g.querySelector('.pg-cur');
+      const dots = g.querySelectorAll('.pg-dots i');
+      let idx = 0;
+      const go = i=>{ idx=(i+n)%n; imgs.forEach((im,k)=>im.classList.toggle('on',k===idx)); if(cur)cur.textContent=idx+1; dots.forEach((d,k)=>d.classList.toggle('on',k===idx)); };
+      const pv=g.querySelector('.pg-prev'), nx=g.querySelector('.pg-next');
+      if(pv) pv.addEventListener('click',e=>{e.stopPropagation();go(idx-1);});
+      if(nx) nx.addEventListener('click',e=>{e.stopPropagation();go(idx+1);});
+      dots.forEach((d,k)=>d.addEventListener('click',e=>{e.stopPropagation();go(k);}));
+      let sx=0, t0=false;
+      g.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;t0=true;},{passive:true});
+      g.addEventListener('touchend',e=>{if(!t0)return;t0=false;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>30)go(idx+(dx<0?1:-1));},{passive:true});
+    });
+  }
+
+  /* ===== Tabs（首个为“全程规划”总览页，置于 DAY1 之前）===== */
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = `<div class="tab" data-overview="1">全程<small>规划总览</small></div>`
+    + DAYS.map(d=>`<div class="tab" data-id="${d.id}">DAY ${d.id}<small>${d.date} ${d.wd}</small></div>`).join('')
+    + `<div class="legend">
+         <span><i style="background:var(--blue)"></i>景点</span>
+         <span><i style="background:var(--food)"></i>美食</span>
+         <span><i style="background:var(--culture)"></i>文化</span>
+         <span><i style="background:var(--shop)"></i>购物</span>
+         <span><i style="background:#e2452f"></i>交通</span>
+       </div>`;
+  tabsEl.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      if(t.dataset.overview) renderOverviewPage();
+      else renderDay(+t.dataset.id);
+      scrollToTop();
+    });
+  });
+
+  /* 酒店 / 房型图片（图片爬虫采集 · 本地化 · 横版完整显示） */
+  const HOTEL_IMG = {
+    hanting:  ["imgs_sz/hanting/hanting_1.jpg"],
+    mudu:     ["imgs_sz/mudu_hotel/mudu_hotel_1.jpg","imgs_sz/mudu_hotel/mudu_hotel_2.jpg","imgs_sz/mudu_hotel/mudu_hotel_3.jpg","imgs_sz/mudu_hotel/mudu_hotel_4.jpg","imgs_sz/mudu_hotel/mudu_hotel_5.jpg"],
+    muduRoom: ["imgs_sz/mudu_hotel/mudu_hotel_1.jpg","imgs_sz/mudu_hotel/mudu_hotel_2.jpg","imgs_sz/mudu_hotel/mudu_hotel_3.jpg","imgs_sz/mudu_hotel/mudu_hotel_4.jpg","imgs_sz/mudu_hotel/mudu_hotel_5.jpg"]
+  };
+  /* 每个酒店配套的“周边 / 房型”详情（与 HOTELS 顺序对应） */
+  const HOTEL_DETAIL = [
+    { // 汉庭（上海虹桥枢纽火车站店）idx0 —— DAY1 卡片
+      aroundTitle:'🚶 周边配套',
+      around:[
+        '<b>虹桥火车站</b>：打车约 10min，9:26 高铁直发苏州',
+        '<b>虹桥 T2 航站楼</b>：与火车站同枢纽，返程 MU2407 也由此飞',
+        '<b>七宝老街 / 上海动物园</b>：地铁可达，若早到可顺逛',
+        '<b>房型</b>：高级双床房 ¥185/间，4 人开 2 间（共 ¥370/晚）'
+      ],
+      rooms:null
+    },
+    { // 木渎万达悦华度假酒店 idx1 —— DAY2 卡片
+      aroundTitle:'🚶 周边配套（步行 / 地铁可达）',
+      around:[
+        '<b>木渎古镇</b>（DAY2）：严家花园、虹饮山房、古松园，步行约 5min',
+        '<b>古城园林</b>（DAY3）：打车约 40min（地铁 5 号线→2/4 号线约 50min，优先打车）',
+        '<b>苏州站 / 上海虹桥</b>（返程）：地铁 5 号线转线约 1h 到苏州站再高铁'
+      ],
+      rooms:{ name:'扇衾家庭套房', tag:'4 人 · 2 晚', price:'4 人 2 晚合计 <b>¥1870</b>（含双早，可住 4 人）' }
+    }
+  ];
+
+  /* 生成某日的酒店卡片 HTML（含多图轮播 + 周边 + 房型） */
+  function hotelCardHtml(idx){
+    const h = HOTELS[idx]; const d = HOTEL_DETAIL[idx];
+    if(!h || !d) return '';
+    const aroundLis = d.around.map(x=>`<li>${x}</li>`).join('');
+    const rooms = d.rooms ? `<div class="rooms"><div class="room">
+        <div class="room-nm">🛏 ${d.rooms.name} <span class="room-tag">${d.rooms.tag}</span></div>
+        <div class="room-price">${d.rooms.price}</div>
+      </div></div>` : '';
+    return `<div class="ht" data-hidx="${idx}">
+      <div class="ht-head">
+        <div class="ht-nm">${h.name} <span class="ht-st">${h.star}</span></div>
+        <div class="ht-tap">👆 点击卡片 · 地图飞至酒店位置 📍</div>
+      </div>
+      <div class="hotel-gallery">${galleryHtml(idx===0 ? [HOTEL_IMG.hanting[0]] : HOTEL_IMG.mudu, h.name)}</div>
+      <div class="ht-meta">📍 <b>位置：</b>${idx===0
+        ? '闵行区沪青平公路 1209 号（近中春路），驱车至虹桥枢纽约 10 分钟，距虹桥火车站打车约 ¥15 / 10min，前一晚住这里、次日 9:26 高铁最从容。'
+        : '吴中区木渎镇塔影巷 5 号，步行几分钟直达<b>木渎古镇</b>，距渎川桥地铁站步行约 1.2 km，地处苏州城西、闹中取静的江南庭院。'}</div>
+      <div class="ht-around"><span class="around-t">${d.aroundTitle}</span><ul>${aroundLis}</ul></div>
+      ${rooms}
+    </div>`;
+  }
+
+  /* 全程规划总览：往返交通 + 全程住宿 + 旅行规划（始终显示在 DAY1 卡片前） */
+  function buildOverview(){
+    const ov = document.getElementById('overview');
+    if(!ov) return;
+    const transit = `<div class="ov-transit">
+        <div class="ov-fly"><span class="ov-fly-k">去程 · HO132 吉祥</span>
+          <div class="ov-fly-r">榆次 → 太原武宿 <b>TYN</b> ✈ <b>上海虹桥 SHA</b><br>9/26 周六 <b>21:25</b> 起飞 · 约 23:35 落地（同枢纽住汉庭虹桥）</div>
+          <div class="ov-fly-sub">次日 <b>9/27 周日 09:26</b> 虹桥站乘高铁 → 苏州站（约 30min，4 人高铁约 ¥180）</div>
+          <div class="ov-fly-p">4人 ¥${FLIGHT_4} <small>含机建燃油</small></div></div>
+        <div class="ov-fly"><span class="ov-fly-k">返程 · MU2407 东航</span>
+          <div class="ov-fly-sub">当日 <b>9/29 周二 17:30</b> 苏州南站乘高铁 → 上海虹桥（约 40min，4 人高铁约 ¥136）</div>
+          <div class="ov-fly-r"><b>上海虹桥 SHA</b> ✈ 太原武宿 <b>TYN</b> → 榆次<br>9/29 周二 21:25 起飞 · 23:35 落地（周庄午后赴虹桥）</div>
+          <div class="ov-fly-p">4人 ¥${RETURN_4} <small>含机建燃油</small></div></div>
+      </div>`;
+    const hotels = HOTELS.map((h,idx)=>`<div class="ov-hotel" data-hidx="${idx}">
+        <div class="h-ic">🏨</div>
+        <div><div class="h-mn">${h.name}<span class="h-st">${h.star}</span></div>
+        <div class="h-dt">${h.price}</div></div>
+      </div>`).join('');
+    const plan = DAYS.map(d=>`<div class="ov-day">
+        <div class="d-no">DAY ${d.id}<small>${d.date} ${d.wd}</small></div>
+        <div class="d-body"><div class="d-th">${d.theme}</div>
+        <div class="d-pl">${d.plan||''}</div></div>
+      </div>`).join('');
+    const weatherHtml = [
+      {city:'上海虹桥', icon:'🌙', temp:'23°C', range:'18~27°C', desc:'9/26 傍晚抵达，多云转阴，微风。夜间气温约 20°C，出站穿薄外套即可。', tip:'机场→酒店步行 10min，无需打伞'},
+      {city:'苏州 / 木渎', icon:'⛅', temp:'25°C', range:'19~29°C', desc:'9/27–28 白天多云间晴，午后偶有短时阵雨（江南秋典型）。体感舒适，适合古镇漫步与园林游览。', tip:'带把折叠伞，防晒+防阵雨'},
+      {city:'周庄', icon:'🌤️', temp:'24°C', range:'19~28°C', desc:'9/29 上午多云，水乡晨雾散后光线柔和，摇橹船体验最佳。午后转阴但不影响返程。', tip:'清晨水乡有雾，拍照更有氛围'},
+      {city:'太原 / 榆次', icon:'🌤️', temp:'19°C', range:'12~24°C', desc:'9/26 出发及 9/29 返程：北方秋季干燥晴朗，昼夜温差大。白天单衣够、早晚需加外套。', tip:'出发/返回备一件薄外套'}
+    ].map(w=>`<div class="w-card">
+        <div class="w-city">${w.city}</div>
+        <div class="w-icon">${w.icon}</div>
+        <div class="w-temp">${w.temp}</div>
+        <div class="w-range">${w.range}</div>
+        <div class="w-desc">${w.desc}</div>
+        <div class="w-tip">💡 ${w.tip}</div>
+      </div>`).join('');
+    const prepItems = [
+      {key:'hotel',   ic:'🏨', tx:'住宿',     sub:'汉庭 + 木渎悦华已订'},
+      {key:'flight',  ic:'✈️', tx:'机票',     sub:'往返 HO132 / MU2407'},
+      {key:'train1',  ic:'🚄', tx:'虹桥→苏州', sub:'高铁买票 9/13'},
+      {key:'train2',  ic:'🚄', tx:'苏州→上海', sub:'高铁买票 9/15'},
+      {key:'ticket',  ic:'🎫', tx:'门票',     sub:'园林 / 古镇门票'},
+      {key:'booking', ic:'📅', tx:'景点预约', sub:'需实名预约的景点'},
+      {key:'checkin', ic:'🪪', tx:'机票值机', sub:'起飞前 24h 值机选座'},
+      {key:'luggage', ic:'🧳', tx:'准备行李', sub:'衣物 / 充电 / 常用药'},
+      {key:'idcard',  ic:'🪪', tx:'身份证件', sub:'身份证 / 护照证件'}
+    ];
+    const prepList = prepItems.map(p=>`<div class="prep-item" data-prep="${p.key}" role="checkbox" aria-checked="false" tabindex="0">
+        <span class="prep-cb"></span>
+        <span class="prep-ic">${p.ic}</span>
+        <span class="prep-tx">${p.tx}<span class="prep-tx-sub">${p.sub}</span></span>
+      </div>`).join('');
+    const prep = `<div class="prep">
+        <div class="prep-top">
+          <div class="prep-top-l">🎯 出发前准备清单 <small id="prepSync" class="prep-sync busy">☁️ 连接中…</small></div>
+          <div class="prep-pct" id="prepPct">0%</div>
+        </div>
+        <div class="prep-bar"><div class="prep-fill" id="prepFill"></div></div>
+        <div class="prep-list" id="prepList">${prepList}</div>
+        <div class="prep-foot"><span id="prepMsg">还没开始？点上方任意一项开始打卡吧 ✨</span>
+          <button class="prep-reset" id="prepReset" type="button">重置</button></div>
+      </div>`;
+    ov.innerHTML = `<div class="ov-head">🗺️ 全程规划 · 4 日游总览 <small>往返交通 · 全程住宿 · 旅行规划</small></div>
+      <div class="ov-sec"><div class="ov-sec-t">✅ 前期准备进度</div>${prep}</div>
+      <div class="ov-sec"><div class="ov-sec-t">✈️ 往返交通信息</div>${transit}</div>
+      <div class="ov-sec"><div class="ov-sec-t">🏨 全程住宿信息</div><div class="ov-hotels">${hotels}</div>
+        <div class="ov-foot">💡 汉庭为经济连锁、干净实惠；木渎悦华为万达旗下中高端度假酒店，白墙黛瓦江南庭院风、步行即达木渎古镇，是“不默认亚朵、选性价比 + 位置”的稳妥组合。房价为参考，以酒店实时房态为准。</div></div>
+      <div class="ov-sec"><div class="ov-sec-t">📅 旅行规划信息</div><div class="ov-plan">${plan}</div></div>
+      <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small>9/26–9/29 参考预报</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
+    initGalleries(ov);
+    initPrepChecklist(ov);
+  }
+
+  /* ===== 前期准备进度打卡：勾选 → 动画更新进度条，并【实时云端共享同步】到所有打开分享链接的人 =====
+     - 云端存储：textdb.online（固定键、GET 读 / GET query 写，CORS 开放）
+     - 机制：本地即时响应 + 后台上云 + 每 3s 轮询拉取他人更新（updatedAt 时间戳做 last-write-wins 合并）
+     - file:// 协议自动降级为纯本地模式（浏览器拦截 null origin 跨域请求）
+     - localStorage 仅作离线兜底缓存 */
+  function initPrepChecklist(root){
+    const list = root.querySelector('#prepList');
+    const fill = root.querySelector('#prepFill');
+    const pct  = root.querySelector('#prepPct');
+    const msg  = root.querySelector('#prepMsg');
+    const sync = root.querySelector('#prepSync');
+    const resetBtn = root.querySelector('#prepReset');
+    if(!list || !fill || !pct) return;
+    const items = Array.from(list.querySelectorAll('.prep-item'));
+    const total = items.length;
+    const STORE = 'sz_prep_v1';
+    /* 云端存储：textdb.online（固定键、写入即建、CORS 开放；键永不过期，数据被清理也会在下次勾选时自动重建）
+     * 注意：file:// 协议下浏览器会拦截跨域 fetch（null origin），此时自动降级为纯本地模式 */
+    const KEY      = 'suzhou2026prep-e7c3a1f0';
+    const API_GET  = 'https://textdb.online/' + KEY;
+    const API_SET  = 'https://textdb.online/update/?key=' + KEY + '&value=';
+    const isLocalFile = location.protocol === 'file:';   // file:// 无法跨域 fetch
+
+    let state = {};          // {key:true}
+    let updatedAt = 0;       // 本地已知的最新时间戳
+    // 读本地缓存（兼容旧格式：直接是 {key:true} map）
+    try{
+      const c = JSON.parse(localStorage.getItem(STORE) || '{}') || {};
+      if(c && typeof c.items === 'object' && c.items){ state = c.items; updatedAt = c.updatedAt || 0; }
+      else { state = c; updatedAt = 0; }
+    }catch(e){ state = {}; updatedAt = 0; }
+
+    function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({v:1, items:state, updatedAt})); }catch(e){} }
+    function setSync(txt, cls){ if(sync){ sync.textContent = txt; sync.className = 'prep-sync ' + (cls||''); } }
+
+    let pctTimer = null;
+    // 数字从 from→to 平滑滚动，与进度条宽度过渡同步
+    function animateNumber(from, to){
+      if(pctTimer) cancelAnimationFrame(pctTimer);
+      const dur = 650, t0 = performance.now();
+      const step = (now)=>{
+        const k = Math.min(1, (now - t0) / dur);
+        const eased = 1 - Math.pow(1 - k, 3);       // easeOutCubic
+        pct.textContent = Math.round(from + (to - from) * eased) + '%';
+        if(k < 1) pctTimer = requestAnimationFrame(step);
+      };
+      pctTimer = requestAnimationFrame(step);
+    }
+
+    function render(animate){
+      const done = items.filter(it=> state[it.dataset.prep]).length;
+      const percent = Math.round(done / total * 100);
+      const prev = parseInt(pct.textContent) || 0;
+      fill.style.width = percent + '%';
+      if(animate) animateNumber(prev, percent); else pct.textContent = percent + '%';
+      pct.classList.toggle('done', percent === 100);
+      if(animate){ pct.classList.add('bump'); setTimeout(()=>pct.classList.remove('bump'), 260); }
+      if(msg){
+        if(percent === 0)        msg.textContent = '还没开始？点上方任意一项开始打卡吧 ✨';
+        else if(percent === 100) msg.textContent = '🎉 全部准备就绪，可以安心出发啦！';
+        else                     msg.textContent = `已完成 ${done}/${total} 项，继续加油 💪`;
+      }
+    }
+
+    // 把 state 应用到所有勾选框（用于云端拉取覆盖）
+    function applyState(animate){
+      items.forEach(it=>{
+        const on = !!state[it.dataset.prep];
+        it.classList.toggle('checked', on);
+        it.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      render(animate);
+    }
+
+    // 拉取云端；若远端更新更晚则覆盖本地并带动画
+    async function pull(){
+      if(isLocalFile){ setSync('📂 本地模式', 'local'); return; }
+      try{
+        const r = await fetch(API_GET + '?t=' + Date.now(), {cache:'no-store'});
+        if(!r.ok) throw 0;
+        const txt = (await r.text()).trim();
+        if(txt === ''){
+          // 键不存在/被清空：若本地有进度则自动重建云端，实现自愈
+          if(updatedAt > 0) push();
+          setSync('☁️ 已同步', 'ok');
+          return;
+        }
+        const d = JSON.parse(txt);
+        if(d && typeof d.updatedAt === 'number' && d.updatedAt > updatedAt){
+          state = (d.items && typeof d.items === 'object') ? d.items : {};
+          updatedAt = d.updatedAt;
+          saveLocal();
+          applyState(true);
+        }
+        setSync('☁️ 已同步', 'ok');
+      }catch(e){ setSync('⚠️ 离线·本地已存', 'off'); }
+    }
+
+    // 推送到云端（textdb 用 GET query 方式写入，写入即建键）
+    async function push(){
+      if(isLocalFile){ setSync('📂 本地模式', 'local'); return; }
+      setSync('🔄 同步中…', 'busy');
+      try{
+        const payload = encodeURIComponent(JSON.stringify({v:1, items:state, updatedAt}));
+        const r = await fetch(API_SET + payload, {cache:'no-store'});
+        if(!r.ok) throw 0;
+        const res = await r.json();
+        if(!res || res.status !== 1) throw 0;
+        setSync('☁️ 已同步', 'ok');
+      }catch(e){ setSync('⚠️ 离线·本地已存', 'off'); }
+    }
+
+    function toggle(it){
+      const k = it.dataset.prep;
+      if(state[k]) delete state[k]; else state[k] = true;
+      updatedAt = Date.now();
+      it.classList.toggle('checked', !!state[k]);
+      it.setAttribute('aria-checked', state[k] ? 'true' : 'false');
+      saveLocal();
+      render(true);
+      push();          // 后台上云
+    }
+
+    items.forEach(it=>{
+      it.addEventListener('click', ()=> toggle(it));
+      it.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(it); } });
+    });
+    if(resetBtn){
+      resetBtn.addEventListener('click', ()=>{
+        state = {}; updatedAt = Date.now();
+        saveLocal();
+        applyState(true);
+        push();
+      });
+    }
+
+    // 首帧：先渲染本地状态（不跳数字），下一帧再触发进度条宽度过渡动画
+    applyState(false);
+    const initDone = items.filter(it=> state[it.dataset.prep]).length;
+    fill.style.width = '0%';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      fill.style.width = Math.round(initDone/total*100) + '%';
+      if(initDone>0) animateNumber(0, Math.round(initDone/total*100));
+    }));
+
+    // 云端首拉 + 每 3 秒轮询，实现跨设备/跨人实时同步
+    setSync('☁️ 连接中…', 'busy');
+    pull();
+    setInterval(pull, 3000);
+  }
+
+  /* 酒店卡片点击 -> 地图飞行到对应位置（事件委托，覆盖总览 + 当日卡片；轮播控制件不触发定位） */
+  document.addEventListener('click', (e)=>{
+    const card = e.target.closest('[data-hidx]');
+    if(!card) return;
+    if(e.target.closest('.pg-nav') || e.target.closest('.pg-dots')) return;  // 轮播箭头/圆点仅切图
+    const idx = +card.dataset.hidx;
+    const h = HOTELS[idx]; if(!h) return;
+    const targetDay = (idx===0) ? 1 : 2;   // 汉庭在 DAY1、木渎在 DAY2
+    activeHotelIdx = idx;
+    if(activeDay !== targetDay) renderDay(targetDay);   // 切到该酒店所在天以重建标记与卡片
+    scrollToMap();     // 竖版：把地图滚到视野
+    map.flyTo([h.lat, h.lng], 16, {duration:1.0});
+    setTimeout(()=>{ if(hotelMarkers[0]) hotelMarkers[0].openPopup(); }, 650);
+  });
+
+  /* 同步冻结顶栏高度 —— 竖版缩放控件固定在其正下方 */
+  function syncTopbarH(){
+    const bar = document.getElementById('topbar');
+    if(bar) document.documentElement.style.setProperty('--topbar-h', bar.offsetHeight + 'px');
+  }
+
+  /* 屏幕尺寸/方向变化：修正地图尺寸并按当前天重新适配视野 */
+  function refitMap(){
+    map.invalidateSize();
+    syncTopbarH();
+    const d = DAYS.find(x=>x.id===activeDay);
+    if(d){ const pts = d.pois.map(p=>[p.lat,p.lng]); if(pts.length) map.fitBounds(pts,{padding:[50,50]}); }
+  }
+  let rzT;
+  window.addEventListener('resize', ()=>{ clearTimeout(rzT); rzT=setTimeout(refitMap, 250); });
+  window.addEventListener('orientationchange', ()=>{ setTimeout(refitMap, 350); });
+
+  /* ===== 翻书画册（StPageFlip 真实卷角翻页） ===== */
+  function firstImgOf(slug){ const a = POI_IMAGES[slug]; return (a && a[0]) || ''; }
+  function dayHeroImg(day, fallbackSlug){
+    for(const p of (day.pois||[])){ const s = NAME2SLUG[p.name]; if(s && POI_IMAGES[s] && POI_IMAGES[s][0]) return POI_IMAGES[s][0]; }
+    return firstImgOf(fallbackSlug);
+  }
+  const DAY_FALLBACK = {1:'hongqiao', 2:'mudu', 3:'zhuozheng', 4:'zhouzhuang'};
+
+  function buildBookPagesHTML(){
+    const pages = [];
+    const coverImg = firstImgOf('zhouzhuang') || firstImgOf('mudu');
+    // 封面（硬页）
+    pages.push(`<div class="pf-page" data-density="hard"><div class="pf-in pf-cover">
+      <div class="pf-cv-img" style="background-image:url('${coverImg}')"></div>
+      <div class="pf-cv-mask"></div>
+      <div class="pf-cv-body">
+        <div class="pf-cv-badge">S U Z H O U</div>
+        <div class="pf-cv-big">苏州</div>
+        <div class="pf-cv-sub">4 日深度游 · 旅行画册</div>
+        <div class="pf-cv-line"></div>
+        <div class="pf-cv-date">江南水乡 · 园林古城 · 9/26 – 9/29</div>
+      </div>
+      <div class="pf-cv-foot">榆次出发 · 4 人同行 · 翻页开始你的江南之旅 →</div>
+    </div></div>`);
+
+    // 总览页
+    const flightSum = FLIGHT_4 + RETURN_4, hotelSum = HANTING_4 + MUUDU_HOTEL_4;
+    pages.push(`<div class="pf-page" data-density="soft"><div class="pf-in">
+      <div class="pf-ov-head"><div class="pf-ov-h1">🗺️ 全程总览<small>往返交通 · 全程住宿 · 预算一览</small></div></div>
+      <div class="pf-route">
+        <b>去程</b> 榆次 → 太原武宿 ✈ HO132 → 上海虹桥<br>
+        次日 🚄 虹桥 → 苏州 · 住木渎悦华<br>
+        <b>游玩</b> 虎丘 → 木渎古镇 → 拙政园/苏博/留园 → 平江路评弹 → 周庄水乡<br>
+        <b>返程</b> 周庄 → 苏州南 🚄 上海虹桥 ✈ MU2407 → 太原武宿 → 榆次
+      </div>
+      <div class="pf-budget">
+        <div class="pf-bg"><div class="k">✈️ 往返机票</div><div class="v">¥${flightSum.toLocaleString()}</div></div>
+        <div class="pf-bg"><div class="k">🏨 全程住宿</div><div class="v">¥${hotelSum.toLocaleString()}</div></div>
+        <div class="pf-bg"><div class="k">🚄 交通接驳</div><div class="v">¥${TRANSIT_4.toLocaleString()}</div></div>
+        <div class="pf-bg"><div class="k">🎫 门票(估)</div><div class="v">¥${LOCAL_4.toLocaleString()}</div></div>
+        <div class="pf-bg total"><div class="k">4 人总预算</div><div class="v">¥${BUDGET.toLocaleString()}</div></div>
+      </div>
+      <div class="pf-pageno">总览</div>
+    </div></div>`);
+
+    // DAY 1–4
+    DAYS.forEach(day=>{
+      const hero = dayHeroImg(day, DAY_FALLBACK[day.id]);
+      let listHtml;
+      if(day.pois && day.pois.length){
+        listHtml = `<ul class="pf-tl">${day.pois.map(p=>{
+          const ic = (CAT[p.cat]||{}).i || '📍';
+          return `<li><span class="pf-t">${p.t||''}</span><span class="pf-ic">${ic}</span><span class="pf-nm">${p.name}</span></li>`;
+        }).join('')}</ul>`;
+      } else {
+        listHtml = `<ul class="pf-tl"><li><span class="pf-ic">✈️</span><span class="pf-nm">榆次 → 太原武宿 · 乘 HO132 飞上海虹桥</span></li>
+          <li><span class="pf-ic">🏨</span><span class="pf-nm">入住汉庭虹桥，同枢纽从容休整</span></li>
+          <li><span class="pf-ic">🚄</span><span class="pf-nm">次日 9:26 高铁赴苏州</span></li></ul>`;
+      }
+      pages.push(`<div class="pf-page" data-density="soft"><div class="pf-in">
+        <div class="pf-hero" style="background-image:url('${hero}')">
+          <div class="pf-hero-tag"><div class="pf-day">DAY ${day.id} · ${day.date} ${day.wd}</div><div class="pf-theme">${day.theme}</div></div>
+        </div>
+        <div class="pf-body">
+          <div class="pf-plan">${day.plan}</div>
+          ${listHtml}
+        </div>
+        <div class="pf-pageno">DAY ${day.id}</div>
+      </div></div>`);
+    });
+
+    // 住宿页
+    pages.push(`<div class="pf-page" data-density="soft"><div class="pf-in">
+      <div class="pf-ov-head"><div class="pf-sec-title">🏨 全程住宿</div></div>
+      <div class="pf-hotel">
+        <div class="pf-ht-img" style="background-image:url('${firstImgOf('hanting')}')"></div>
+        <div><div class="pf-ht-nm">汉庭酒店（上海虹桥枢纽火车站店）</div>
+          <div class="pf-ht-tag">★★ 经济型 · 高性价比</div>
+          <div class="pf-ht-dc">高级双床房 ¥185/间 · 2 间（¥370，9/26 当晚）。干净实惠，机场同枢纽，落地即休整。</div></div>
+      </div>
+      <div class="pf-hotel">
+        <div class="pf-ht-img" style="background-image:url('${firstImgOf('mudu_hotel')}')"></div>
+        <div><div class="pf-ht-nm">苏州木渎万达悦华度假酒店</div>
+          <div class="pf-ht-tag">★★★★ 高档型 · 度假</div>
+          <div class="pf-ht-dc">扇衾家庭套房 · 4人2晚 ¥1870（9/27–29）。白墙黛瓦江南庭院，步行即达木渎古镇。</div></div>
+      </div>
+      <div class="pf-plan" style="margin:14px 14px 0">💡 汉庭经济连锁、木渎悦华万达旗下中高端度假，性价比 + 位置的稳妥组合。房价为参考，以酒店实时房态为准。</div>
+      <div class="pf-pageno">住宿</div>
+    </div></div>`);
+
+    // 封底（硬页）
+    pages.push(`<div class="pf-page" data-density="hard"><div class="pf-in pf-cover">
+      <div class="pf-cv-mask" style="background:linear-gradient(150deg,#123047,#2b6b7d)"></div>
+      <div class="pf-cv-body">
+        <div class="pf-cv-big" style="font-size:40px">江南之约</div>
+        <div class="pf-cv-line"></div>
+        <div class="pf-cv-sub" style="font-size:16px">4 天 · ${DAYS.reduce((s,d)=>s+d.pois.length,0)} 个打卡点 · 4 人 ¥${BUDGET.toLocaleString()}</div>
+        <div class="pf-cv-date" style="margin-top:18px">愿你在苏州，得半日闲。</div>
+      </div>
+      <div class="pf-cv-foot">苏州 4 日游画册 · 祝旅途愉快 🌿</div>
+    </div></div>`);
+
+    return pages;
+  }
+
+  let pageFlip = null, bookBuilt = false;
+  function ensureFlipbook(){
+    if(bookBuilt) return;
+    const host = document.getElementById('flipBook');
+    if(!host || !window.St || !St.PageFlip) return;
+    host.innerHTML = buildBookPagesHTML().join('');
+    const portrait = window.matchMedia('(max-width:820px)').matches;
+    pageFlip = new St.PageFlip(host, {
+      width: 460, height: 620,
+      size: 'stretch',
+      minWidth: 260, maxWidth: 560,
+      minHeight: 350, maxHeight: 720,
+      maxShadowOpacity: 0.5,
+      showCover: true,
+      usePortrait: portrait,
+      mobileScrollSupport: false,
+      flippingTime: 750,
+      drawShadow: true
+    });
+    pageFlip.loadFromHTML(host.querySelectorAll('.pf-page'));
+    bookBuilt = true;
+  }
+
+  function openBook(){
+    const ov = document.getElementById('bookOverlay');
+    if(!ov) return;
+    ov.style.display = 'flex';
+    void ov.offsetWidth;
+    ov.classList.add('on');
+    // 等浮层有尺寸后再初始化，避免 stretch 计算为 0
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ ensureFlipbook(); if(pageFlip) try{ pageFlip.update(); }catch(e){} }));
+    document.addEventListener('keydown', bookKey);
+  }
+  function closeBook(){
+    const ov = document.getElementById('bookOverlay');
+    if(!ov) return;
+    ov.classList.remove('on');
+    document.removeEventListener('keydown', bookKey);
+    setTimeout(()=>{ ov.style.display = 'none'; }, 420);
+  }
+  function bookKey(e){
+    if(e.key === 'Escape') closeBook();
+    else if(e.key === 'ArrowRight' && pageFlip) pageFlip.flipNext();
+    else if(e.key === 'ArrowLeft' && pageFlip) pageFlip.flipPrev();
+  }
+  (function wireBook(){
+    const fab = document.getElementById('bookFab');
+    const cls = document.getElementById('bookClose');
+    const ov  = document.getElementById('bookOverlay');
+    const pv  = document.getElementById('bookPrev');
+    const nx  = document.getElementById('bookNext');
+    if(fab) fab.addEventListener('click', openBook);
+    if(cls) cls.addEventListener('click', closeBook);
+    if(pv)  pv.addEventListener('click', ()=>{ if(pageFlip) pageFlip.flipPrev(); });
+    if(nx)  nx.addEventListener('click', ()=>{ if(pageFlip) pageFlip.flipNext(); });
+    if(ov)  ov.addEventListener('click', (e)=>{ if(e.target === ov) closeBook(); }); // 点击背景关闭
+    window.addEventListener('resize', ()=>{ if(pageFlip && document.getElementById('bookOverlay').classList.contains('on')){ try{ pageFlip.update(); }catch(e){} } });
+  })();
+
+  /* init：默认进入“全程规划”总览页（置于 DAY1 之前） */
+  syncTopbarH();
+  buildOverview();
+  renderOverviewPage();
+  </script>
+</body>
+</html>
