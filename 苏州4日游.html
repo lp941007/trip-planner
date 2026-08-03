@@ -7,16 +7,30 @@
 <link rel="stylesheet" href="leaflet/leaflet.css" />
 <style>
   :root{
-    --blue:#0071e3; --food:#ff6b35; --culture:#8e54e9; --shop:#00b894;
-    --ink:#1d1d1f; --sub:#6e6e73; --line:#e5e5ea;
-    --bg:#f5f5f7; --card:#ffffff;
-    --shadow:0 6px 24px rgba(0,0,0,.08);
-    --shadow-lift:0 14px 40px rgba(0,0,0,.16);
-    --serif:'PingFang SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    /* —— 主调色：东方诗意 · 蓝青为主、暖朱点睛，四类语义各司其职 —— */
+    --blue:#0a7bd6;        /* 景点 / 主行动 */
+    --food:#f4732b;        /* 美食 · 暖朱 */
+    --culture:#7d6cd0;     /* 文化 · 黛紫（比 8e54e9 更克制优雅） */
+    --shop:#0fae8b;        /* 购物 · 碧玉绿 */
+    --traffic:#e2452f;     /* 交通 */
+    --ink:#1c1d21; --sub:#6b6f76; --line:#e7e8ec; --line-2:#d8dae1;
+    --bg:#f4f5f7; --card:#ffffff; --card-2:#fbfcfe;
+    /* 阴影：柔两层 + 主色微晕，去扁平、提质感 */
+    --shadow:0 4px 18px rgba(20,30,50,.07), 0 1px 3px rgba(20,30,50,.05);
+    --shadow-lift:0 16px 42px rgba(20,30,50,.16), 0 4px 12px rgba(10,123,214,.10);
+    --shadow-soft:0 2px 10px rgba(20,30,50,.06);
+    /* 字体：优先中文无衬线（思源/苹方），西文走系统 */
+    --serif:'PingFang SC','Source Han Sans SC','Noto Sans SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --serif-disp:'Songti SC','STSong','Noto Serif SC',serif;   /* 仅用于少量诗意标题点缀 */
+    /* 间距尺度（统一节奏） */
+    --sp-1:6px; --sp-2:10px; --sp-3:16px; --sp-4:24px; --sp-5:32px; --sp-6:44px;
+    --radius:16px; --radius-sm:12px; --radius-xs:10px;
     /* Apple 风格缓动曲线 */
     --ease-out:cubic-bezier(.22,.61,.36,1);       /* 平滑减速 */
     --ease-inout:cubic-bezier(.4,0,.2,1);          /* 标准双向 */
     --ease-spring:cubic-bezier(.34,1.56,.64,1);    /* 轻微回弹 */
+    /* —— 备选区块此前引用了以下未定义变量导致颜色回退，显式定义修复 —— */
+    --txt:var(--ink); --mut:var(--sub); --line-b:var(--line); --accent:var(--blue);
   }
   *{box-sizing:border-box;}
 
@@ -57,20 +71,25 @@
 
   /* ===== Banner ===== */
   .banner{
-    position:relative; padding:26px 24px 22px; text-align:center;
-    background:linear-gradient(135deg,#1d6fb8 0%,#16a085 100%);
+    position:relative; padding:30px 24px 24px; text-align:center;
+    background:linear-gradient(135deg,#0d5fb0 0%,#0e8f86 100%);
     color:#fff; overflow:hidden;
+  }
+  /* 细腻颗粒层：用 feTurbulence 噪声去扁平“矢量 slop”观感（克制，opacity 极低） */
+  .banner::before{
+    content:""; position:absolute; inset:0; opacity:.06; pointer-events:none; mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   .banner::after{
     content:""; position:absolute; inset:0;
-    background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.25),transparent 45%),
-               radial-gradient(circle at 80% 80%,rgba(255,255,255,.18),transparent 40%);
+    background:radial-gradient(circle at 18% 18%,rgba(255,255,255,.28),transparent 46%),
+               radial-gradient(circle at 82% 82%,rgba(255,255,255,.20),transparent 42%);
   }
   .banner h1{
-    margin:0; font-size:34px; font-weight:800; letter-spacing:2px;
-    text-shadow:0 2px 12px rgba(0,0,0,.18); position:relative;
+    margin:0; font-size:clamp(26px,4.4vw,38px); font-weight:800; letter-spacing:3px;
+    text-shadow:0 2px 16px rgba(0,0,0,.22); position:relative;
   }
-  .banner .sub{margin-top:6px; font-size:14px; opacity:.92; position:relative; letter-spacing:1px;}
+  .banner .sub{margin-top:7px; font-size:14px; opacity:.92; position:relative; letter-spacing:1.5px;}
   .budget-bar{position:relative; margin:14px auto 0; max-width:720px; display:inline-block;
     background:rgba(0,0,0,.16); border:1px solid rgba(255,255,255,.3); border-radius:999px;
     padding:7px 16px; font-size:13px; line-height:1.4; color:#fff;}
@@ -79,14 +98,16 @@
   @media(max-width:520px){ .budget-bar{font-size:11.5px; padding:6px 10px;} .budget-bar .bb{font-size:13px;} }
   .badges{position:absolute; top:18px; right:20px; display:flex; gap:10px; z-index:2;}
   .badge{
-    background:rgba(255,255,255,.18); backdrop-filter:blur(8px);
-    border:1px solid rgba(255,255,255,.35); border-radius:14px;
+    background:linear-gradient(160deg,rgba(255,255,255,.26),rgba(255,255,255,.12));
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.40); border-radius:15px;
     padding:8px 14px; min-width:78px; text-align:center; color:#fff;
-    transition:transform .4s var(--ease-spring), background .35s var(--ease-out);
+    box-shadow:0 6px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.30);
+    transition:transform .4s var(--ease-spring), background .35s var(--ease-out), box-shadow .35s var(--ease-out);
   }
-  .badge:hover{transform:translateY(-3px) scale(1.04); background:rgba(255,255,255,.28);}
+  .badge:hover{transform:translateY(-3px) scale(1.04); background:linear-gradient(160deg,rgba(255,255,255,.34),rgba(255,255,255,.18)); box-shadow:0 10px 24px rgba(0,0,0,.24);}
   .badge .v{font-size:20px; font-weight:800; line-height:1.1;}
-  .badge .k{font-size:11px; opacity:.9; margin-top:2px; letter-spacing:1px;}
+  .badge .k{font-size:11px; opacity:.92; margin-top:2px; letter-spacing:1px;}
 
   /* ===== Tabs ===== */
   .tabs{display:flex; gap:8px; padding:12px 18px; background:#fff;
@@ -101,7 +122,7 @@
   .tab small{display:block; font-size:11px; font-weight:500; opacity:.8; margin-top:2px;}
   .tab:hover{color:var(--ink); transform:translateY(-2px);}
   .tab:active{transform:scale(.95);}
-  .tab.active{background:var(--blue); color:#fff; box-shadow:0 8px 22px rgba(0,113,227,.34); transform:translateY(-1px);}
+  .tab.active{background:linear-gradient(135deg,var(--blue),#0e9c8a); color:#fff; box-shadow:0 8px 22px rgba(10,123,214,.34); transform:translateY(-1px);}
   .legend{display:flex; gap:14px; margin-left:auto; flex-wrap:wrap; font-size:12px; color:var(--sub);}
   .legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle;}
 
@@ -110,8 +131,9 @@
 
   /* ===== Layout ===== */
   .wrap{flex:1; display:flex; min-height:0;}
-  .left{flex:1 1 56%; overflow-y:auto; padding:18px 18px 40px;}
-  .right{flex:1 1 44%; position:sticky; top:0; min-height:0;}
+  .left{flex:1 1 56%; overflow-y:auto; padding:20px 22px 44px;}
+  .right{flex:1 1 44%; position:sticky; top:0; min-height:0;
+    box-shadow:-1px 0 0 var(--line), -14px 0 28px -16px rgba(20,30,50,.10);}
   #map{height:100%; width:100%; background:#eaeaea;}
 
   /* ===== Timeline ===== */
@@ -124,21 +146,21 @@
   .timeline::before{content:""; position:absolute; left:9px; top:6px; bottom:6px;
     width:2px; background:linear-gradient(var(--blue),var(--food)); opacity:.35;}
   .card{
-    position:relative; background:var(--card); border-radius:16px; padding:14px 16px;
+    position:relative; background:linear-gradient(180deg,#ffffff,#fcfdff); border-radius:var(--radius); padding:15px 17px;
     margin-bottom:14px; box-shadow:var(--shadow); cursor:pointer;
-    border:1px solid transparent; will-change:transform,opacity;
+    border:1px solid var(--line); will-change:transform,opacity;
     transition:transform .4s var(--ease-out), box-shadow .4s var(--ease-out), border-color .3s var(--ease-out);
   }
-  .card:hover{transform:translateY(-3px) scale(1.008); border-color:var(--blue); box-shadow:var(--shadow-lift);}
+  .card:hover{transform:translateY(-3px) scale(1.008); border-color:rgba(10,123,214,.5); box-shadow:var(--shadow-lift), 0 0 0 3px rgba(10,123,214,.08);}
   .card:active{transform:translateY(-1px) scale(.994); transition-duration:.12s;}
-  .card.active{border-color:var(--blue); box-shadow:0 10px 30px rgba(0,113,227,.28);}
+  .card.active{border-color:var(--blue); box-shadow:0 10px 30px rgba(10,123,214,.28), 0 0 0 3px rgba(10,123,214,.10);}
   /* 入场动画：切换 DAY 时逐条淡入上滑（错峰） */
   .card.enter{animation:cardIn .6s var(--ease-out) both;}
   .card .dot{position:absolute; left:-22px; top:20px; width:14px; height:14px; border-radius:50%;
     border:3px solid #fff; box-shadow:0 0 0 2px rgba(0,0,0,.06);}
   .card .row1{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
   .card .time{font-weight:800; font-size:15px; color:var(--ink); font-variant-numeric:tabular-nums;}
-  .tag{font-size:12px; font-weight:700; color:#fff; padding:2px 9px; border-radius:20px;}
+  .tag{font-size:12px; font-weight:700; color:#fff; padding:2px 10px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,.14); letter-spacing:.5px;}
   .card .name{font-size:17px; font-weight:700;}
   .card .desc{font-size:13.5px; color:var(--sub); line-height:1.55; margin-top:4px;}
   .card .meta{font-size:12px; color:var(--sub); margin-top:7px; display:flex; gap:14px; flex-wrap:wrap;}
@@ -170,7 +192,7 @@
   .legend-cat i{width:11px; height:11px; border-radius:50%; display:inline-block; margin-right:3px;}
 
   /* ===== 行前交通卡 ===== */
-  .flight{background:linear-gradient(135deg,#0b3d91 0%,#0071e3 100%);color:#fff;
+  .flight{background:linear-gradient(135deg,#0b3d91 0%,#0a7bd6 100%);color:#fff;
     border-radius:16px; padding:16px 18px; margin-bottom:18px; box-shadow:var(--shadow);
     animation:fadeSlide .55s var(--ease-out) both;}
   .flight h3{margin:0 0 4px; font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px;}
@@ -332,7 +354,7 @@
   .prep-pct.bump{transform:scale(1.18);}
   .prep-bar{height:12px; border-radius:20px; background:#e3e9f0; overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,.08); margin-bottom:13px;}
   .prep-fill{height:100%; width:0; border-radius:20px; position:relative; overflow:hidden;
-    background:linear-gradient(90deg,#0071e3,#00b894);
+    background:linear-gradient(90deg,var(--blue),var(--shop));
     transition:width .7s var(--ease-inout);}
   .prep-fill::after{content:''; position:absolute; inset:0;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
@@ -493,6 +515,15 @@
       transition-duration:.001ms !important; scroll-behavior:auto !important;}
   }
 
+  /* 可见焦点态：键盘可达性（WCAG） */
+  a:focus-visible, button:focus-visible, .tab:focus-visible,
+  .prep-item:focus-visible, .ht:focus-visible, .card:focus-visible,
+  .book-fab:focus-visible, .book-nav:focus-visible, .book-close:focus-visible{
+    outline:2px solid var(--blue); outline-offset:2px; border-radius:10px;
+  }
+  /* 行程路书封面大字用衬线，添东方诗意 */
+  .pf-cover .pf-cv-big{font-family:var(--serif-disp);}
+
   /* ===== 备选景点（时间充裕时）===== */
   .backup-sec{margin-top:26px; animation:secIn .55s var(--ease-out) both;}
   .backup-sec-h{display:flex; align-items:center; gap:8px; margin:0 0 12px; font-size:15px; font-weight:650; color:var(--txt);}
@@ -522,7 +553,7 @@
   /* ===== 行程路书（StPageFlip） ===== */
   .book-fab{position:fixed; right:20px; bottom:22px; z-index:1400; display:flex; align-items:center; gap:8px;
     padding:12px 18px; border:none; border-radius:30px; cursor:pointer; font-family:inherit; font-size:14.5px; font-weight:700;
-    color:#fff; background:linear-gradient(135deg,#0071e3,#8e54e9); box-shadow:0 10px 28px rgba(0,113,227,.38);
+    color:#fff; background:linear-gradient(135deg,var(--blue),var(--culture)); box-shadow:0 10px 28px rgba(10,123,214,.38);
     transition:transform .3s var(--ease-spring), box-shadow .3s var(--ease-out);}
   .book-fab:hover{transform:translateY(-3px) scale(1.04); box-shadow:0 16px 38px rgba(0,113,227,.46);}
   .book-fab:active{transform:scale(.95);}
@@ -650,7 +681,7 @@
         <span><i style="background:var(--food)"></i>美食</span>
         <span><i style="background:var(--culture)"></i>文化</span>
         <span><i style="background:var(--shop)"></i>购物</span>
-        <span><i style="background:#e2452f"></i>交通</span>
+        <span><i style="background:var(--traffic)"></i>交通</span>
       </div>
     </section>
   </div>
@@ -673,10 +704,10 @@
   <script>
   /* ===== 分类配色 ===== */
   const CAT = {
-    '景点':{c:'#0071e3', i:'📍'},
-    '美食':{c:'#ff6b35', i:'🍜'},
-    '文化':{c:'#8e54e9', i:'🏛️'},
-    '购物':{c:'#00b894', i:'🛍️'},
+    '景点':{c:'#0a7bd6', i:'📍'},
+    '美食':{c:'#f4732b', i:'🍜'},
+    '文化':{c:'#7d6cd0', i:'🏛️'},
+    '购物':{c:'#0fae8b', i:'🛍️'},
     '交通':{c:'#e2452f', i:'🚄'}
   };
 
@@ -1123,7 +1154,7 @@
          <span><i style="background:var(--food)"></i>美食</span>
          <span><i style="background:var(--culture)"></i>文化</span>
          <span><i style="background:var(--shop)"></i>购物</span>
-         <span><i style="background:#e2452f"></i>交通</span>
+         <span><i style="background:var(--traffic)"></i>交通</span>
        </div>`;
   tabsEl.querySelectorAll('.tab').forEach(t=>{
     t.addEventListener('click',()=>{
