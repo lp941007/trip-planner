@@ -1978,11 +1978,15 @@
       try{ await navigator.clipboard.writeText(url); if(typeof showToast==='function') showToast('已复制导航链接'); }
       catch(e){ if(typeof showToast==='function') showToast('复制失败，请手动复制'); }
     });
-    // 地图 popup 内「路线导航」按钮：事件委托，覆盖景点 / 酒店 / 备选等全部标记
-    document.addEventListener('click', (e)=>{
-      const b=e.target.closest('.pop-route');
-      if(b){ e.preventDefault(); e.stopPropagation();
-        openRoute({lat:+b.dataset.lat, lng:+b.dataset.lng, name:b.dataset.name}); }
+    // 地图 popup 内「路线导航」按钮：在 popup 打开时直接绑定到按钮本身，
+    // 避免 Leaflet popup 的 disableClickPropagation 拦截冒泡导致 document 委托收不到真实点击
+    map.on('popupopen', (ev)=>{
+      const box = ev.popup && ev.popup.getElement();
+      if(!box) return;
+      const b = box.querySelector('.pop-route');
+      if(b) b.addEventListener('click', ()=>{
+        openRoute({lat:+b.dataset.lat, lng:+b.dataset.lng, name:b.dataset.name});
+      });
     });
     document.addEventListener('keydown', (e)=>{
       if(e.key==='Escape'){ const sh=document.getElementById('routeSheet'); if(sh && sh.classList.contains('show')) closeRoute(); }
