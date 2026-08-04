@@ -484,6 +484,51 @@
   .marker-pin, .hotel-pin{transition:transform .25s var(--ease-spring);}
   .leaflet-marker-icon:hover .marker-pin{transform:rotate(-45deg) scale(1.15);}
   .leaflet-marker-icon:hover .hotel-pin{transform:scale(1.18);}
+  /* 地图 popup 内的「路线导航」按钮（覆盖景点/酒店/备选等全部标记） */
+  .leaflet-popup-content .pop-route{margin-top:9px; width:100%; cursor:pointer; border:none; color:#fff;
+    background:linear-gradient(135deg,#0d5fb0,#0e8f86); border-radius:10px; padding:8px 10px;
+    font-size:13px; font-weight:700; transition:transform .2s var(--ease-spring), box-shadow .25s var(--ease-out);}
+  .leaflet-popup-content .pop-route:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(13,95,176,.35);}
+  .leaflet-popup-content .pop-route:active{transform:scale(.96);}
+  /* 路线导航 bottom-sheet */
+  .route-backdrop{position:fixed; inset:0; background:rgba(15,23,42,.32); backdrop-filter:blur(2px);
+    z-index:1490; opacity:0; visibility:hidden; transition:opacity .3s var(--ease-out), visibility .3s;}
+  .route-backdrop.show{opacity:1; visibility:visible;}
+  .route-sheet{position:fixed; left:50%; bottom:0; transform:translate(-50%,110%); width:min(520px,100%);
+    background:var(--card); border:1px solid var(--line); border-bottom:none; border-radius:20px 20px 0 0;
+    box-shadow:0 -18px 50px rgba(15,23,42,.28); z-index:1500; padding:16px 18px calc(18px + env(safe-area-inset-bottom));
+    transition:transform .42s var(--ease-spring);}
+  .route-sheet.show{transform:translate(-50%,0);}
+  .route-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .route-title{font-size:16px; font-weight:800; color:var(--ink);}
+  .route-close{border:none; background:transparent; font-size:24px; line-height:1; color:var(--sub); cursor:pointer;
+    padding:2px 6px; border-radius:8px;}
+  .route-close:hover{background:#f0f2f5;}
+  .route-pts{display:flex; flex-direction:column; gap:8px; background:#f7f9fc; border:1px solid var(--line);
+    border-radius:14px; padding:12px 14px;}
+  .route-pt{display:flex; align-items:center; gap:10px;}
+  .rp-k{font-size:12px; font-weight:700; color:var(--sub); min-width:34px;}
+  .route-start{flex:1; font-size:14px; font-weight:700; color:var(--ink); padding:8px 10px;
+    border:1.5px solid var(--line); border-radius:10px; background:#fff; max-width:100%;}
+  .route-end{flex:1; font-size:14px; font-weight:800; color:var(--blue);}
+  .route-arrow{display:flex; justify-content:center; color:var(--sub); font-size:13px; margin:-2px 0;}
+  .route-stat{margin:12px 2px 6px; font-size:14px; color:var(--ink);}
+  .route-stat b{color:var(--blue); font-size:16px;}
+  .route-modes{display:flex; gap:8px; margin:6px 0 12px;}
+  .route-mode{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:#f7f9fc;
+    border:1px solid var(--line); border-radius:12px; padding:9px 4px;}
+  .rm-ic{font-size:18px;}
+  .rm-n{font-size:11.5px; color:var(--sub); font-weight:600;}
+  .rm-t{font-size:14px; font-weight:800; color:var(--ink);}
+  .route-actions{display:flex; gap:8px;}
+  .route-btn{flex:1; text-align:center; text-decoration:none; cursor:pointer; border-radius:12px;
+    padding:11px 10px; font-size:14px; font-weight:800; transition:transform .2s var(--ease-spring), box-shadow .25s var(--ease-out);}
+  .route-btn.primary{background:linear-gradient(135deg,#0d5fb0,#0e8f86); color:#fff; border:none; box-shadow:0 8px 20px rgba(13,95,176,.3);}
+  .route-btn.ghost{background:#fff; color:var(--blue); border:1.5px solid var(--line);}
+  .route-btn:hover{transform:translateY(-2px);}
+  .route-btn:active{transform:scale(.97);}
+  .route-note{margin-top:10px; font-size:11.5px; color:var(--sub); line-height:1.5;}
+  @media (max-width:520px){ .route-sheet{border-radius:16px 16px 0 0;} }
 
   /* ===== Apple 风：总览页分块 / 卡片错峰入场 ===== */
   .ov-sec{animation:secIn .5s var(--ease-out) both;}
@@ -749,6 +794,28 @@
   <!-- 行程路书入口 + 全屏浮层 -->
   <button class="book-fab" id="bookFab" type="button" aria-label="打开行程路书"><span class="bf-ic">📖</span>行程路书</button>
   <button class="to-top" id="toTop" type="button" aria-label="返回顶部">↑</button>
+
+  <!-- 路线导航面板（点击地图标记的「路线导航」后弹出） -->
+  <div class="route-backdrop" id="routeBackdrop"></div>
+  <div class="route-sheet" id="routeSheet" role="dialog" aria-label="路线导航" aria-modal="false">
+    <div class="route-head">
+      <span class="route-title">🧭 路线导航</span>
+      <button class="route-close" id="routeClose" type="button" aria-label="关闭">×</button>
+    </div>
+    <div class="route-pts">
+      <div class="route-pt"><span class="rp-k">起点</span><select class="route-start" id="routeStart"></select></div>
+      <div class="route-arrow">↓</div>
+      <div class="route-pt"><span class="rp-k">终点</span><span class="route-end" id="routeEnd">—</span></div>
+    </div>
+    <div class="route-stat" id="routeStat"></div>
+    <div class="route-modes" id="routeModes"></div>
+    <div class="route-actions">
+      <a class="route-btn primary" id="routeAmap" href="#" target="_blank" rel="noopener">在高德地图导航</a>
+      <a class="route-btn ghost" id="routeTmap" href="#" target="_blank" rel="noopener">腾讯地图</a>
+      <button class="route-btn ghost" id="routeCopy" type="button">复制链接</button>
+    </div>
+    <div class="route-note">距离为直线估算（实际道路通常更长）。点击「在高德地图导航」可在手机 / 电脑地图 App 中获取实时路线与转弯指引。</div>
+  </div>
   <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游行程路书">
     <div class="book-stage">
       <div class="book-title-bar">📖 苏州 4 日游 · 行程路书</div>
@@ -924,6 +991,7 @@
   const poiLayer = L.layerGroup().addTo(map);
   const hotelLayer = L.layerGroup().addTo(map);
   const userLayer = L.layerGroup().addTo(map);  // 访客位置：独立 layer，不随 DAY 切换被清空
+  const routeLayer = L.layerGroup().addTo(map);  // 路线导航：独立 layer，不随 DAY 切换被清空
   let userMarker = null, userAccuracy = null, userPos = null;  // [lat,lng] (GCJ-02)
   const markers = []; // {poi, marker}
   const catOn = {景点:true, 美食:true, 文化:true, 购物:true, 交通:true}; // 地图图例分类显隐状态
@@ -1087,7 +1155,7 @@
       const ic = L.divIcon({className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-14],
         html:`<div class="hotel-pin${h.rec?' rec':''}">🏨</div>`});
       const m = L.marker([h.lat,h.lng],{icon:ic}).addTo(hotelLayer);
-      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><small>${hid===0?'上海 · 虹桥枢纽':'苏州 · 木渎古镇旁'}</small>`);
+      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><small>${hid===0?'上海 · 虹桥枢纽':'苏州 · 木渎古镇旁'}</small><br><button class="pop-route" data-lat="${h.lat}" data-lng="${h.lng}" data-name="${h.name}">🧭 路线导航</button>`);
       hotelMarkers[0] = m;
     }
     const pts = [];
@@ -1096,7 +1164,7 @@
       if(/太原/.test(p.name)) return;
       const col = CAT[p.cat].c;
       const m = L.marker([p.lat,p.lng],{icon:pinIcon(i+1,col)}).addTo(poiLayer);
-      m.bindPopup(`<b>${i+1}. ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}`);
+      m.bindPopup(`<b>${i+1}. ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}<br><button class="pop-route" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name}">🧭 路线导航</button>`);
       m.on('click',()=>highlightCard(i));
       markers[i] = {poi:p, marker:m};
       pts.push([p.lat,p.lng]);
@@ -1107,7 +1175,7 @@
       day.backup.forEach((p,i)=>{
         if(/太原/.test(p.name)) return;
         const m = L.marker([p.lat,p.lng],{icon:L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-12], html:`<div class="bk-pin">备</div>`})}).addTo(poiLayer);
-        m.bindPopup(`<b>备选 · ${p.name}</b><br>${CAT[p.cat].i}${p.cat}`);
+        m.bindPopup(`<b>备选 · ${p.name}</b><br>${CAT[p.cat].i}${p.cat}<br><button class="pop-route" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name}">🧭 路线导航</button>`);
         // 标记 → 卡片：双向联动
         m.on('click',()=>{
           if(typeof setActiveBackup==='function') setActiveBackup(p.name, i, backupMarkers);
@@ -1148,7 +1216,7 @@
       const ic = L.divIcon({className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-14],
         html:`<div class="hotel-pin${h.rec?' rec':''}">🏨</div>`});
       const m = L.marker([h.lat,h.lng],{icon:ic}).addTo(hotelLayer);
-      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}`);
+      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><button class="pop-route" data-lat="${h.lat}" data-lng="${h.lng}" data-name="${h.name}">🧭 路线导航</button>`);
       hotelMarkers[i] = m;
     });
     // 全部行程 POI（按天遍历，号码标在针上表示所属 DAY；剔除太原飞行端点）
@@ -1803,6 +1871,7 @@
       const { latitude:wLat, longitude:wLng, accuracy } = pos.coords;
       const [lat, lng] = wgs2gcj(wLat, wLng);   // WGS-84 → GCJ-02，与高德瓦片对齐
       userPos = [lat, lng];
+      if(typeof refreshRouteStarts==='function') refreshRouteStarts();
       // 精度圈（米）
       if(userAccuracy) try{ userLayer.removeLayer(userAccuracy); }catch(e){}
       userAccuracy = L.circle(userPos, { radius: accuracy || 50, className:'me-accuracy', interactive:false }).addTo(userLayer);
@@ -1835,6 +1904,89 @@
     if('geolocation' in navigator){
       setTimeout(()=>locateVisitor({ silent:true, pan:false }), 600);
     }
+  }
+
+  /* ===== 交互增强：路线导航（景点 / 酒店 / 备选 → 基于访客位置或指定起点的路线方案） ===== */
+  let routeDest = null;
+  function rDist(m){ return m<1000 ? Math.round(m)+' 米' : (m/1000).toFixed(1)+' 公里'; }
+  function rDur(s){ s=Math.max(0,Math.round(s)); return s<60 ? s+' 秒' : Math.round(s/60)+' 分钟'; }
+  function haversine(a,b){
+    const R=6371000, toR=Math.PI/180;
+    const dLat=(b[0]-a[0])*toR, dLng=(b[1]-a[1])*toR;
+    const s=Math.sin(dLat/2)**2 + Math.cos(a[0]*toR)*Math.cos(b[0]*toR)*Math.sin(dLng/2)**2;
+    return 2*R*Math.asin(Math.sqrt(s));
+  }
+  function routeStarts(){
+    const arr=[];
+    if(userPos) arr.push({key:'me', label:'📍 我的位置', pos:userPos});
+    HOTELS.forEach((h,i)=>arr.push({key:'h'+i, label:h.name, pos:[h.lat,h.lng]}));
+    arr.push({key:'suzhou_station', label:'苏州站', pos:[31.319,120.591]}); // GCJ-02 近似
+    return arr;
+  }
+  function fillStartSelect(){
+    const sel=document.getElementById('routeStart'); if(!sel) return;
+    const opts=routeStarts(); const prev=sel.value;
+    sel.innerHTML=opts.map(o=>`<option value="${o.key}">${o.label}</option>`).join('');
+    sel.value = (userPos ? 'me' : (prev && opts.some(o=>o.key===prev) ? prev : opts[0].key));
+  }
+  function refreshRouteStarts(){
+    const sh=document.getElementById('routeSheet');
+    if(sh && sh.classList.contains('show')) fillStartSelect();
+  }
+  function renderRoute(){
+    const sel=document.getElementById('routeStart');
+    if(!sel || !routeDest || !routeLayer) return;
+    const s=routeStarts().find(o=>o.key===sel.value) || routeStarts()[0];
+    const e=[routeDest.lat, routeDest.lng];
+    const dist=haversine(s.pos, e);
+    routeLayer.clearLayers();
+    L.polyline([s.pos, e], {color:'#0e8f66', weight:4, opacity:.9, dashArray:'1,8', lineCap:'round'}).addTo(routeLayer);
+    L.circleMarker(s.pos, {radius:5, color:'#0d6efd', weight:2, fillColor:'#fff', fillOpacity:1}).addTo(routeLayer);
+    L.circleMarker(e, {radius:5, color:'#0e8f66', weight:2, fillColor:'#fff', fillOpacity:1}).addTo(routeLayer);
+    map.fitBounds([s.pos, e], {padding:[70,70], maxZoom:16});
+    document.getElementById('routeEnd').textContent=routeDest.name;
+    document.getElementById('routeStat').innerHTML=`直线距离约 <b>${rDist(dist)}</b>`;
+    const modes=[
+      {ic:'🚗', name:'驾车', t:dist/(38000/3600)+4*60},
+      {ic:'🚌', name:'公交/地铁', t:dist/(22000/3600)+7*60},
+      {ic:'🚶', name:'步行', t:dist/(4800/3600)}
+    ];
+    document.getElementById('routeModes').innerHTML=modes.map(m=>`<div class="route-mode"><span class="rm-ic">${m.ic}</span><span class="rm-n">${m.name}</span><span class="rm-t">${rDur(m.t)}</span></div>`).join('');
+    const fLat=s.pos[0], fLng=s.pos[1], tLat=e[0], tLng=e[1];
+    const am=document.getElementById('routeAmap'); if(am) am.href=
+      `https://uri.amap.com/navigation?from=${fLng},${fLat},${encodeURIComponent(s.label)}&to=${tLng},${tLat},${encodeURIComponent(routeDest.name)}&mode=car&coordinate=gaode&callnative=1&src=suzhou-trip`;
+    const tm=document.getElementById('routeTmap'); if(tm) tm.href=
+      `https://apis.map.qq.com/uri/v1/routeplan?type=drive&from=${encodeURIComponent(s.label)}&fromcoord=${fLat},${fLng}&to=${encodeURIComponent(routeDest.name)}&tocoord=${tLat},${tLng}&referer=suzhou-trip&policy=0`;
+  }
+  function openRoute(dest){
+    routeDest=dest; fillStartSelect(); renderRoute();
+    document.getElementById('routeSheet').classList.add('show');
+    document.getElementById('routeBackdrop').classList.add('show');
+  }
+  function closeRoute(){
+    document.getElementById('routeSheet').classList.remove('show');
+    document.getElementById('routeBackdrop').classList.remove('show');
+    if(routeLayer) routeLayer.clearLayers();
+  }
+  function initRoute(){
+    const close=document.getElementById('routeClose'); if(close) close.addEventListener('click', closeRoute);
+    const bd=document.getElementById('routeBackdrop'); if(bd) bd.addEventListener('click', closeRoute);
+    const sel=document.getElementById('routeStart'); if(sel) sel.addEventListener('change', renderRoute);
+    const copy=document.getElementById('routeCopy');
+    if(copy) copy.addEventListener('click', async ()=>{
+      const url=(document.getElementById('routeAmap')||{}).href || '';
+      try{ await navigator.clipboard.writeText(url); if(typeof showToast==='function') showToast('已复制导航链接'); }
+      catch(e){ if(typeof showToast==='function') showToast('复制失败，请手动复制'); }
+    });
+    // 地图 popup 内「路线导航」按钮：事件委托，覆盖景点 / 酒店 / 备选等全部标记
+    document.addEventListener('click', (e)=>{
+      const b=e.target.closest('.pop-route');
+      if(b){ e.preventDefault(); e.stopPropagation();
+        openRoute({lat:+b.dataset.lat, lng:+b.dataset.lng, name:b.dataset.name}); }
+    });
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape'){ const sh=document.getElementById('routeSheet'); if(sh && sh.classList.contains('show')) closeRoute(); }
+    });
   }
 
   /* ===== 交互增强：Toast 轻提示 ===== */
@@ -1878,7 +2030,7 @@
   buildOverview();
   renderOverviewPage();
   /* 交互增强初始化 */
-  initLegend(); initShare(); initBackToTop(); initReveal(); initUserLocate();
+  initLegend(); initShare(); initBackToTop(); initReveal(); initUserLocate(); initRoute();
   </script>
 </body>
 </html>
