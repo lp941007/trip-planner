@@ -136,7 +136,7 @@
   .left{flex:1 1 56%; overflow-y:auto; padding:20px 22px 44px;}
   .right{flex:1 1 44%; position:sticky; top:0; min-height:0; z-index:60;
     box-shadow:-1px 0 0 var(--line), -14px 0 28px -16px rgba(20,30,50,.10);}
-  #map{height:100%; width:100%; background:#eaeaea;}
+  #map{height:100%; width:100%; background:#eaeaea; scroll-margin-top:88px;}  /* scroll-margin-top: 弥补 sticky topbar 高度，scrollIntoView 后地图顶部不被 DAY 标签遮挡 */
 
   /* ===== Timeline ===== */
   .dayhead{display:flex; align-items:baseline; gap:10px; margin:4px 4px 14px;}
@@ -1124,6 +1124,8 @@
           const idx = +card.dataset.bk;
           const p = day.backup[idx];
           if(!p) return;
+          // 0. 自动跳转至地图视图（竖版下卡片在地图下方，点击后先滚回地图，确保用户能直接看到地图）
+          if(typeof scrollToMap==='function') scrollToMap();
           // 1. 卡片 → 标记：激活联动
           setActiveBackup(p.name, idx, backupMarkers);
           // 2. 平滑飞抵 + 自动打开气泡
@@ -1266,7 +1268,8 @@
     const rect = r.getBoundingClientRect();
     // 让地图顶部完整落在冻结顶栏下方（不重叠），完整显示整块地图卡片
     const target = rect.top + window.scrollY - barH - 6;
-    window.scrollTo({top: Math.max(0, target), behavior:'smooth'});
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top: Math.max(0, target), behavior: reduced ? 'auto' : 'smooth'});
     setTimeout(()=>map.invalidateSize(), 300);
   }
 
@@ -1963,6 +1966,7 @@
       `https://apis.map.qq.com/uri/v1/routeplan?type=drive&from=${encodeURIComponent(s.label)}&fromcoord=${fLat},${fLng}&to=${encodeURIComponent(routeDest.name)}&tocoord=${tLat},${tLng}&referer=suzhou-trip&policy=0`;
   }
   function openRoute(dest){
+    if(typeof scrollToMap==='function') scrollToMap();   // 打开路线面板时也把地图滚入视口，确保用户直接看到路线
     routeDest=dest; fillStartSelect(); renderRoute();
     document.getElementById('routeSheet').classList.add('show');
     document.getElementById('routeBackdrop').classList.add('show');
