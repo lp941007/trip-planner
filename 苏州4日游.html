@@ -818,12 +818,12 @@
     <div class="route-stat" id="routeStat"></div>
     <div class="route-modes" id="routeModes"></div>
     <div class="route-actions">
-      <a class="route-btn primary" id="routeAmap" href="#" target="_blank" rel="noopener">在高德地图导航</a>
+      <a class="route-btn primary" id="routeBaidu" href="#" target="_blank" rel="noopener">在百度地图导航</a>
       <a class="route-btn ghost" id="routeTmap" href="#" target="_blank" rel="noopener">腾讯地图</a>
-      <a class="route-btn ghost" id="routeBaidu" href="#" target="_blank" rel="noopener">百度地图</a>
+      <a class="route-btn ghost" id="routeAmap" href="#" target="_blank" rel="noopener">高德地图</a>
       <button class="route-btn ghost" id="routeCopy" type="button">复制链接</button>
     </div>
-    <div class="route-note">距离为直线估算（实际道路通常更长）。点击「在高德地图导航」可在手机 / 电脑地图 App 中获取实时路线与转弯指引。</div>
+    <div class="route-note">距离为直线估算（实际道路通常更长）。点击「在百度地图导航」可在手机 / 电脑地图 App 中获取实时路线与转弯指引。</div>
   </div>
   <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游行程路书">
     <div class="book-stage">
@@ -1998,7 +1998,7 @@
     const sel=document.getElementById('routeStart'); if(sel) sel.addEventListener('change', renderRoute);
     const copy=document.getElementById('routeCopy');
     if(copy) copy.addEventListener('click', async ()=>{
-      const url=(document.getElementById('routeAmap')||{}).href || '';
+      const url=(document.getElementById('routeBaidu')||{}).href || '';
       try{ await navigator.clipboard.writeText(url); if(typeof showToast==='function') showToast('已复制导航链接'); }
       catch(e){ if(typeof showToast==='function') showToast('复制失败，请手动复制'); }
     });
