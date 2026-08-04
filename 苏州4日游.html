@@ -126,13 +126,15 @@
   .legend{display:flex; gap:14px; margin-left:auto; flex-wrap:wrap; font-size:12px; color:var(--sub);}
   .legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle;}
 
-  /* ===== Topbar（标题 + DAY 标签容器） ===== */
-  .topbar{position:relative; z-index:1000;}
+  /* ===== Topbar（标题 + DAY 标签容器） =====
+     层级须低于 Leaflet 弹窗(popup-pane z=700)，否则当标记位于地图顶部时 popup 会被 topbar 压住、按钮点不到。
+     tabs 用负 margin 自然压在地图顶边（非浮动遮挡），自身不建独立层叠上下文。 */
+  .topbar{position:relative; z-index:50;}
 
   /* ===== Layout ===== */
   .wrap{flex:1; display:flex; min-height:0;}
   .left{flex:1 1 56%; overflow-y:auto; padding:20px 22px 44px;}
-  .right{flex:1 1 44%; position:sticky; top:0; min-height:0;
+  .right{flex:1 1 44%; position:sticky; top:0; min-height:0; z-index:60;
     box-shadow:-1px 0 0 var(--line), -14px 0 28px -16px rgba(20,30,50,.10);}
   #map{height:100%; width:100%; background:#eaeaea;}
 
@@ -301,8 +303,10 @@
   .stay-foot{font-size:12px; color:var(--sub); margin-top:12px; line-height:1.55; border-top:1px dashed var(--line); padding-top:10px;}
 
   /* ===== 全程规划总览（独立成页，置于 DAY1 之前，与每日内容互斥显示） ===== */
-  .page{will-change:transform,opacity;}            /* 单页容器：overview / dayView 二者只显示一个 */
-  .page.reveal{animation:pageIn .55s var(--ease-out) both;}
+  /* 注意：.page 平时不挂 will-change/transform，否则会建独立层叠上下文，把地图 popup 的 z-index 锁死在内部、无法越过 topbar。
+     仅在 pageIn 动画期间临时开启 will-change，动画结束即还原。 */
+  .page{}
+  .page.reveal{animation:pageIn .55s var(--ease-out) both; will-change:transform,opacity;}
   .ov{background:var(--card); border-radius:16px; padding:18px 18px 16px; margin-bottom:18px;
     box-shadow:var(--shadow); border:1px solid var(--line);}
   .ov-head{font-size:18px; font-weight:800; color:var(--ink); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
@@ -408,7 +412,7 @@
     /* 竖版专属：地图上方给一条“点卡片可定位”的提示 */
     .map-hint{display:block;}
     /* 竖版：标题 + DAY 标签冻结在顶部，滚动到任何位置都能切换 DAY */
-    .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:1000;
+    .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:50;
       box-shadow:0 4px 14px rgba(0,0,0,.12);}
     .banner{padding:14px 16px 12px;}
     .banner h1{font-size:25px;}
@@ -428,7 +432,7 @@
     .right{order:-1; position:relative; flex:none; height:36vh; min-height:170px;}   /* 地图置顶且更矮，给内容留空间 */
     #map{height:100%;}
     .left{flex:none; max-height:none; overflow:visible; padding:10px 14px 28px;}
-    .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:1000; box-shadow:0 3px 10px rgba(0,0,0,.10);}
+    .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:50; box-shadow:0 3px 10px rgba(0,0,0,.10);}
 
     /* 顶栏大幅压缩 */
     .banner{padding:8px 12px 6px;}
