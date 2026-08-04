@@ -1935,6 +1935,24 @@
     const theta=Math.atan2(y, x) + 0.000003*Math.cos(x*Math.PI);
     return [z*Math.sin(theta) + 0.006, z*Math.cos(theta) + 0.0065];
   }
+  // 移动端优先唤起原生地图 App，失败 / 未安装则降级打开网页版导航链接
+  function isMobile(){
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent)
+        || (navigator.maxTouchPoints>0 && window.matchMedia('(pointer:coarse)').matches);
+  }
+  function tryNativeApp(scheme, web){
+    if(!scheme){ window.open(web, '_blank'); return; }
+    let opened=false; const t0=Date.now();
+    const mark=()=>{ opened=true; };
+    document.addEventListener('visibilitychange', mark);
+    window.addEventListener('pagehide', mark, {once:true});
+    window.location.href = scheme;   // 尝试唤起原生 App（百度/高德/腾讯）
+    // 若 ~2s 内页面仍可见（App 未唤起），则降级为网页版
+    setTimeout(()=>{
+      document.removeEventListener('visibilitychange', mark);
+      if(!opened && !document.hidden && (Date.now()-t0) < 2200) window.location.href = web;
+    }, 2000);
+  }
   function routeStarts(){
     const arr=[];
     if(userPos) arr.push({key:'me', label:'📍 我的位置', pos:userPos});
@@ -1980,6 +1998,11 @@
     const [bfLat, bfLng]=gcj2bd(fLat, fLng), [btLat, btLng]=gcj2bd(tLat, tLng);
     const bd=document.getElementById('routeBaidu'); if(bd) bd.href=
       `https://api.map.baidu.com/direction?origin=latlng:${bfLat},${bfLng}|name:${encodeURIComponent(s.label)}&destination=latlng:${btLat},${btLng}|name:${encodeURIComponent(routeDest.name)}&mode=driving&region=苏州市&output=html&src=suzhou-trip`;
+    // 原生 App URL Scheme（移动端优先唤起；GCJ-02 用于高德/腾讯，BD-09 用于百度）
+    const encF=encodeURIComponent(s.label), encT=encodeURIComponent(routeDest.name);
+    if(am) am.setAttribute('data-scheme', `amapuri://route/plan/?sourceApplication=suzhou-trip&sid=BGVIS1&slat=${fLat}&slon=${fLng}&sname=${encF}&did=BGVIS2&dlat=${tLat}&dlon=${tLng}&dname=${encT}&dev=0&t=0`);
+    if(tm) tm.setAttribute('data-scheme', `qqmap://map/routeplan?type=drive&from=${encF}&fromcoord=${fLat},${fLng}&to=${encT}&tocoord=${tLat},${tLng}&referer=suzhou-trip&policy=0`);
+    if(bd) bd.setAttribute('data-scheme', `baidumap://map/direction?origin=latlng:${bfLat},${bfLng}|name:${encF}&destination=latlng:${btLat},${btLng}|name=${encT}&mode=driving&src=suzhou-trip&coord_type=bd09ll`);
   }
   function openRoute(dest){
     if(typeof scrollToMap==='function') scrollToMap();   // 打开路线面板时也把地图滚入视口，确保用户直接看到路线
@@ -2001,6 +2024,17 @@
       const url=(document.getElementById('routeBaidu')||{}).href || '';
       try{ await navigator.clipboard.writeText(url); if(typeof showToast==='function') showToast('已复制导航链接'); }
       catch(e){ if(typeof showToast==='function') showToast('复制失败，请手动复制'); }
+    });
+    // 移动端优先唤起原生地图 App（百度/高德/腾讯），未安装 / 失败则降级网页版
+    ['routeBaidu','routeTmap','routeAmap'].forEach(id=>{
+      const a=document.getElementById(id); if(!a) return;
+      a.addEventListener('click', (e)=>{
+        if(!isMobile()) return;                  // 桌面端：走 <a> 默认行为，新标签打开网页版
+        const scheme=a.getAttribute('data-scheme');
+        if(!scheme) return;
+        e.preventDefault();
+        tryNativeApp(scheme, a.href);
+      });
     });
     // 地图 popup 内「路线导航」按钮：在 popup 打开时直接绑定到按钮本身，
     // 避免 Leaflet popup 的 disableClickPropagation 拦截冒泡导致 document 委托收不到真实点击
