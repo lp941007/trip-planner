@@ -482,9 +482,12 @@
     font-size:11.5px; font-weight:600; box-shadow:var(--shadow);
     transition:transform .35s var(--ease-out), opacity .35s var(--ease-out);}
 
-  /* Leaflet 弹窗：Apple 风格圆角 + 轻回弹入场 */
-  .leaflet-popup-content-wrapper{border-radius:14px !important; box-shadow:var(--shadow-lift) !important;}
-  .leaflet-popup{animation:popIn .38s var(--ease-spring) both;}
+  /* Leaflet 弹窗：Apple 风格圆角 + 轻回弹入场
+     注意：popIn 动画必须挂在 .leaflet-popup-content-wrapper（内部元素）而非 .leaflet-popup，
+     因为 Leaflet 用 .leaflet-popup 的 inline transform:translate3d(x,y,0) 定位气泡；
+     若动画的关键帧含 transform 且 fill:both，动画结束后会持续覆盖 Leaflet 的定位 transform，
+     导致气泡错位到角落、按钮跑出屏幕外点不到。 */
+  .leaflet-popup-content-wrapper{border-radius:14px !important; box-shadow:var(--shadow-lift) !important; animation:popIn .38s var(--ease-spring) both;}
   .marker-pin, .hotel-pin{transition:transform .25s var(--ease-spring);}
   .leaflet-marker-icon:hover .marker-pin{transform:rotate(-45deg) scale(1.15);}
   .leaflet-marker-icon:hover .hotel-pin{transform:scale(1.18);}
