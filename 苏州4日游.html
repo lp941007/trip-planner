@@ -1128,9 +1128,9 @@
           if(typeof scrollToMap==='function') scrollToMap();
           // 1. 卡片 → 标记：激活联动
           setActiveBackup(p.name, idx, backupMarkers);
-          // 2. 平滑飞抵 + 自动打开气泡
+          // 2. 平滑飞抵；飞抵完成(moveend)后再开气泡，避免 flyTo 期间 openPopup 与 popupopen 内的 panTo 冲突
           map.flyTo([p.lat,p.lng], 14, {duration:1.0});
-          setTimeout(()=>{ if(backupMarkers[idx]) backupMarkers[idx].openPopup(); }, 600);
+          map.once('moveend', ()=>{ if(backupMarkers[idx]) backupMarkers[idx].openPopup(); });
         };
         // 整张卡片可点（与既有体验一致）
         card.addEventListener('click', focusOnMap);
@@ -1161,7 +1161,7 @@
       const ic = L.divIcon({className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-14],
         html:`<div class="hotel-pin${h.rec?' rec':''}">🏨</div>`});
       const m = L.marker([h.lat,h.lng],{icon:ic}).addTo(hotelLayer);
-      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><small>${hid===0?'上海 · 虹桥枢纽':'苏州 · 木渎古镇旁'}</small><br><button class="pop-route" data-lat="${h.lat}" data-lng="${h.lng}" data-name="${h.name}">🧭 路线导航</button>`, {direction:'bottom'});
+      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><small>${hid===0?'上海 · 虹桥枢纽':'苏州 · 木渎古镇旁'}</small><br><button class="pop-route" data-lat="${h.lat}" data-lng="${h.lng}" data-name="${h.name}">🧭 路线导航</button>`, {direction:'bottom', autoPan:false});
       hotelMarkers[0] = m;
     }
     const pts = [];
@@ -1170,7 +1170,7 @@
       if(/太原/.test(p.name)) return;
       const col = CAT[p.cat].c;
       const m = L.marker([p.lat,p.lng],{icon:pinIcon(i+1,col)}).addTo(poiLayer);
-      m.bindPopup(`<b>${i+1}. ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}<br><button class="pop-route" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name}">🧭 路线导航</button>`, {direction:'bottom'});
+      m.bindPopup(`<b>${i+1}. ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}<br><button class="pop-route" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name}">🧭 路线导航</button>`, {direction:'bottom', autoPan:false});
       m.on('click',()=>highlightCard(i));
       markers[i] = {poi:p, marker:m};
       pts.push([p.lat,p.lng]);
@@ -1181,7 +1181,7 @@
       day.backup.forEach((p,i)=>{
         if(/太原/.test(p.name)) return;
         const m = L.marker([p.lat,p.lng],{icon:L.divIcon({className:'', iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-12], html:`<div class="bk-pin">备</div>`})}).addTo(poiLayer);
-        m.bindPopup(`<b>备选 · ${p.name}</b><br>${CAT[p.cat].i}${p.cat}<br><button class="pop-route" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name}">🧭 路线导航</button>`, {direction:'bottom'});
+        m.bindPopup(`<b>备选 · ${p.name}</b><br>${CAT[p.cat].i}${p.cat}<br><button class="pop-route" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${p.name}">🧭 路线导航</button>`, {direction:'bottom', autoPan:false});
         // 标记 → 卡片：双向联动
         m.on('click',()=>{
           if(typeof setActiveBackup==='function') setActiveBackup(p.name, i, backupMarkers);
@@ -1222,7 +1222,7 @@
       const ic = L.divIcon({className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-14],
         html:`<div class="hotel-pin${h.rec?' rec':''}">🏨</div>`});
       const m = L.marker([h.lat,h.lng],{icon:ic}).addTo(hotelLayer);
-      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><button class="pop-route" data-lat="${h.lat}" data-lng="${h.lng}" data-name="${h.name}">🧭 路线导航</button>`, {direction:'bottom'});
+      m.bindPopup(`<b>${h.rec?'⭐ ':''}${h.name}</b><br>${h.star}<br>${h.price}<br><button class="pop-route" data-lat="${h.lat}" data-lng="${h.lng}" data-name="${h.name}">🧭 路线导航</button>`, {direction:'bottom', autoPan:false});
       hotelMarkers[i] = m;
     });
     // 全部行程 POI（按天遍历，号码标在针上表示所属 DAY；剔除太原飞行端点）
@@ -1232,7 +1232,7 @@
         if(/太原/.test(p.name)) return;   // 太原为飞行起降点，不在苏州/上海行程范围
         const col = CAT[p.cat].c;
         const m = L.marker([p.lat,p.lng],{icon:pinIcon(day.id, col)}).addTo(poiLayer);
-        m.bindPopup(`<b>DAY ${day.id} · ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}`, {direction:'bottom'});
+        m.bindPopup(`<b>DAY ${day.id} · ${p.name}</b><br>${p.t} · ${CAT[p.cat].i}${p.cat}`, {direction:'bottom', autoPan:false});
         markers.push({poi:p, marker:m});
         pts.push([p.lat,p.lng]);
       });
@@ -1885,7 +1885,7 @@
       // 蓝点
       if(userMarker) try{ userLayer.removeLayer(userMarker); }catch(e){}
       userMarker = L.marker(userPos, { icon: L.divIcon({ className:'', iconSize:[18,18], iconAnchor:[9,9], html:'<div class="me-pin" title="我的位置"></div>' }), zIndexOffset: 1000 }).addTo(userLayer);
-      userMarker.bindPopup(`<b>📍 我的位置</b><br>精度约 ${accuracy ? Math.round(accuracy) : '?'} 米`, {direction:'bottom'});
+      userMarker.bindPopup(`<b>📍 我的位置</b><br>精度约 ${accuracy ? Math.round(accuracy) : '?'} 米`, {direction:'bottom', autoPan:false});
       if(pan){
         const z = Math.max(13, Math.min(16, accuracy > 5000 ? 12 : 14));
         map.flyTo(userPos, z, { duration: 1.0 });
@@ -1989,6 +1989,13 @@
     // 地图 popup 内「路线导航」按钮：在 popup 打开时直接绑定到按钮本身，
     // 避免 Leaflet popup 的 disableClickPropagation 拦截冒泡导致 document 委托收不到真实点击
     map.on('popupopen', (ev)=>{
+      // 主动把标记居中：popup 强制向下展开(direction:bottom)，居中后 popup 必在容器中部、
+      // 不被任何边缘裁剪(overflow:hidden)，按钮始终可点；autoPan 已禁用，避免双pan冲突。
+      // 仅当标记偏离地图中心>50m 时才 panTo（backup 路径 flyTo 已居中则跳过，避免冗余动画）
+      const ll = ev.popup && ev.popup.getLatLng();
+      if(ll && map.distance(map.getCenter(), ll) > 50){
+        map.panTo(ll, {animate:true, duration:0.45});
+      }
       const box = ev.popup && ev.popup.getElement();
       if(!box) return;
       const b = box.querySelector('.pop-route');
