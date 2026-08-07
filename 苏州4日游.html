@@ -404,7 +404,7 @@
     html,body{height:auto;}
     body{overflow:auto; height:auto; min-height:100vh;}
     .wrap{flex-direction:column; min-height:0;}
-    .right{order:-1; position:relative; flex:none; height:42vh; z-index:auto;}   /* 移动端：不强行建层叠上下文，让 Leaflet tile-pane(z=200) 自然让位顶栏(z=50)，仅 popup(z=700)/marker(z=600) 能越出顶栏 */
+    .right{order:-1; position:relative; flex:none; height:42vh; z-index:1;}   /* 移动端：把整张地图压在吸顶顶栏(z=50)之下，建独立层叠上下文，tile/marker/popup 全部在顶栏下方，顶栏不透明即可正确遮挡，不再穿透 */
     #map{height:100%;}
     .left{flex:none; max-height:none; overflow:visible; padding:16px 16px 44px;}
     .badges{position:static; justify-content:center; margin-top:12px;}
@@ -427,10 +427,10 @@
 
   /* ===== 矮视口横屏 / 折叠屏：强制紧凑单列，避免标题+标签+卡片抢空间 ===== */
   @media (max-height:520px) and (min-width:600px){
-    html,body{height:auto; overflow:auto; min-height:100vh;}
+    html,body{height:auto; min-height:100vh;}   /* 不要给 html 设 overflow:auto，否则 body 变成滚动容器、topbar 的 sticky 相对 body 内容顶部而非视口，会随滚动跑掉（与竖版一致：仅 body 滚动） */
     body{height:auto; overflow:auto;}
     .wrap{flex-direction:column; min-height:0;}
-    .right{order:-1; position:relative; flex:none; height:36vh; min-height:170px; z-index:auto;}   /* 同上：移动端让 Leaflet tile 自然让位 topbar，避免白卡穿模 tabs 行 */
+    .right{order:-1; position:relative; flex:none; height:36vh; min-height:170px; z-index:1;}   /* 矮横屏同理：整张地图压在吸顶顶栏(z=50)之下，正确遮挡不穿透 */
     #map{height:100%;}
     .left{flex:none; max-height:none; overflow:visible; padding:10px 14px 28px;}
     .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:50; box-shadow:0 3px 10px rgba(0,0,0,.10);}
