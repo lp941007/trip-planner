@@ -404,13 +404,14 @@
     html,body{height:auto;}
     body{overflow:auto; height:auto; min-height:100vh;}
     .wrap{flex-direction:column; min-height:0;}
-    .right{order:-1; position:relative; flex:none; height:42vh;}   /* 地图置顶 · 42vh · 非吸顶，向下读行程时自动滚走 */
+    .right{order:-1; position:relative; flex:none; height:42vh; z-index:auto;}   /* 移动端：不强行建层叠上下文，让 Leaflet tile-pane(z=200) 自然让位顶栏(z=50)，仅 popup(z=700)/marker(z=600) 能越出顶栏 */
     #map{height:100%;}
     .left{flex:none; max-height:none; overflow:visible; padding:16px 16px 44px;}
     .badges{position:static; justify-content:center; margin-top:12px;}
     .banner{padding-bottom:18px;}
-    /* 竖版专属：地图上方给一条“点卡片可定位”的提示 */
-    .map-hint{display:block;}
+    /* 竖版专属：地图上方给一条"点卡片可定位"的提示 */
+    .map-hint{display:none;}                 /* 桌面专属，移动端隐藏（白卡 .map-title 一并隐藏，避免覆盖吸顶 tabs 行） */
+    .map-title{display:none;}                /* 移动端隐藏：banner 已有标题与预算，Banner+Tab 行已传达信息；隐藏后吸顶 tabs 行不再被白卡挡住 */
     /* 竖版：标题 + DAY 标签冻结在顶部，滚动到任何位置都能切换 DAY */
     .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:50;
       box-shadow:0 4px 14px rgba(0,0,0,.12);}
@@ -429,7 +430,7 @@
     html,body{height:auto; overflow:auto; min-height:100vh;}
     body{height:auto; overflow:auto;}
     .wrap{flex-direction:column; min-height:0;}
-    .right{order:-1; position:relative; flex:none; height:36vh; min-height:170px; z-index:60;}   /* 地图置顶且更矮；z-index 高于 topbar(50)，popup 不被 DAY 标签遮挡 */
+    .right{order:-1; position:relative; flex:none; height:36vh; min-height:170px; z-index:auto;}   /* 同上：移动端让 Leaflet tile 自然让位 topbar，避免白卡穿模 tabs 行 */
     #map{height:100%;}
     .left{flex:none; max-height:none; overflow:visible; padding:10px 14px 28px;}
     .topbar{position:-webkit-sticky; position:sticky; top:0; z-index:50; box-shadow:0 3px 10px rgba(0,0,0,.10);}
@@ -450,7 +451,8 @@
     .tab{font-size:12px; padding:5px 3px; min-width:0; border-radius:8px;}
     .tab small{font-size:9px; margin-top:1px;}
     .legend{display:none;}
-    .map-hint{display:block; top:8px; right:8px; padding:4px 8px; font-size:10.5px;}
+    .map-hint{display:none;}                 /* 隐藏顶部红顶提示，避免覆盖 tabs */
+    .map-title{display:none;}                /* 隐藏地图白卡，避免覆盖吸顶 tabs 行 */
 
     /* 内容更紧凑 */
     .dayhead{margin:0 0 6px;}
