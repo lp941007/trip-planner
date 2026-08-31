@@ -375,6 +375,11 @@
   .exp-reset{background:none; border:none; font-size:11px; color:var(--sub); cursor:pointer; padding:2px 4px;
     text-decoration:underline dotted; transition:color .25s;}
   .exp-reset:hover{color:var(--blue);}
+  .exp-sync{font-size:11px; font-weight:600; transition:color .3s var(--ease-out);}
+  .exp-sync.ok{color:var(--shop);}
+  .exp-sync.busy{color:var(--blue);}
+  .exp-sync.off{color:#e2452f;}
+  .exp-sync.local{color:var(--purple);}
   @media(max-width:420px){
     .exp-row{flex-wrap:wrap;}
     .exp-main{width:100%; order:2; padding-left:25px;}
@@ -1522,7 +1527,7 @@
       <div class="ov-sec"><div class="ov-sec-t">✈️ 往返交通信息</div>${transit}</div>
       <div class="ov-sec"><div class="ov-sec-t">🏨 全程住宿信息</div><div class="ov-hotels">${hotels}</div>
         <div class="ov-foot">💡 汉庭为经济连锁、干净实惠；木渎悦华为万达旗下中高端度假酒店，白墙黛瓦江南庭院风、步行即达木渎古镇，是“不默认亚朵、选性价比 + 位置”的稳妥组合。房价为参考，以酒店实时房态为准。</div></div>
-      <div class="ov-sec"><div class="ov-sec-t">💰 费用明细清单 <small style="font-size:11px;color:var(--sub);font-weight:500">金额可自行修改，合计实时计算</small></div>
+      <div class="ov-sec"><div class="ov-sec-t">💰 费用明细清单 <small style="font-size:11px;color:var(--sub);font-weight:500">金额可自行修改，合计实时计算</small> <small id="expSync" class="exp-sync busy">☁️ 连接中…</small></div>
         <div class="exp" id="expList"></div></div>
       <div class="ov-sec"><div class="ov-sec-t">📅 旅行规划信息</div><div class="ov-plan">${plan}</div></div>
       <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small>9/26–9/29 参考预报</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
@@ -1531,11 +1536,12 @@
     initExpenseList(ov);
   }
 
-  /* ===== 费用明细清单：可编辑金额 + 名称 · 数值校验 · 实时合计 · localStorage 持久化 =====
+  /* ===== 费用明细清单：可编辑金额 + 名称 · 数值校验 · 实时合计 · 云端同步 =====
      - 7 类固定项：住宿 / 机票 / 火车票 / 租车 / 景点门票 / 餐饮 / 其他，默认值取自当前预算常量（餐饮/其他默认 0）
      - 自定义：用户可点「添加花销项目」动态新增任意条目（名称 + 金额 + 删除）
      - 名称 inline 可编辑（最长 12 字）；金额校验：非负、最多 2 位小数
-     - localStorage 键升级为 sz_exp_v2（兼容 v1 格式：旧 {key:val} 结构自动转 v2） */
+     - 云端同步：textdb.online（与准备清单同一服务、独立键），本地即时响应 + 后台上云 + 每 3s 轮询
+     - localStorage 键 sz_exp_v2（兼容 v1 {key:val} 和旧裸数组格式） */
   function initExpenseList(root){
     const box = root.querySelector('#expList');
     if(!box) return;
@@ -1554,22 +1560,104 @@
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
     function fmt(v){return '¥' + (Number(v)||0).toLocaleString('zh-CN',{minimumFractionDigits:0,maximumFractionDigits:2});}
 
-    function load(){
-      let raw = [];
-      try{ raw = JSON.parse(localStorage.getItem(STORE) || '[]') || []; }catch(e){ raw = []; }
-      // v1 兼容（旧格式：{key:金额} 对象）— 检测是对象格式则按顺序映射到默认项
-      if(raw && !Array.isArray(raw) && typeof raw === 'object'){
-        return DEFAULTS.map(d=>({id:d.id, ic:d.ic, nm:d.nm, amt: Number(raw[d.id] ?? d.def) || 0}));
-      }
-      // v2 数组格式：逐项清洗，丢弃非法
-      const cleaned = (raw||[]).filter(x=>x && typeof x.id==='string' && typeof x.nm==='string');
-      // 确保所有固定项存在（即便被用户删过）
+    /* === 云端同步常量（与准备清单同一 textdb.online 服务，独立键）=== */
+    const EXP_KEY   = 'suzhou2026exp-a3f7b2c9';
+    const EXP_GET   = 'https://textdb.online/' + EXP_KEY;
+    const EXP_SET   = 'https://textdb.online/update/?key=' + EXP_KEY + '&value=';
+    const isLocal   = location.protocol === 'file:';
+
+    let updatedAt = 0;
+
+    function cleanItems(arr){
+      const cleaned = (arr||[]).filter(x=>x && typeof x.id==='string' && typeof x.nm==='string');
       DEFAULTS.forEach(d=>{
         if(!cleaned.some(x=>x.id===d.id)) cleaned.push({id:d.id, ic:d.ic, nm:d.nm, amt:d.def});
       });
       return cleaned;
     }
-    function save(){ try{ localStorage.setItem(STORE, JSON.stringify(items)); }catch(e){} }
+
+    function load(){
+      let raw = null;
+      try{ raw = JSON.parse(localStorage.getItem(STORE) || 'null'); }catch(e){ raw = null; }
+      // 新包装格式：{v:2, items:[...], updatedAt}
+      if(raw && typeof raw === 'object' && !Array.isArray(raw) && Array.isArray(raw.items)){
+        updatedAt = raw.updatedAt || 0;
+        return cleanItems(raw.items);
+      }
+      // v1 兼容（旧格式：{key:金额} 对象）
+      if(raw && typeof raw === 'object' && !Array.isArray(raw)){
+        return DEFAULTS.map(d=>({id:d.id, ic:d.ic, nm:d.nm, amt: Number(raw[d.id] ?? d.def) || 0}));
+      }
+      // 旧 v2 裸数组
+      if(Array.isArray(raw)) return cleanItems(raw);
+      return DEFAULTS.map(d=>({id:d.id, ic:d.ic, nm:d.nm, amt:d.def}));
+    }
+    function save(){ try{ localStorage.setItem(STORE, JSON.stringify({v:2, items, updatedAt})); }catch(e){} }
+
+    /* === 云端同步：pull 拉取 / push 推送 / setSync 状态指示（与准备清单同一模式）=== */
+    let syncEl = null;
+    function setSync(txt, cls){
+      if(!syncEl) syncEl = root.querySelector('#expSync');
+      if(syncEl){ syncEl.textContent = txt; syncEl.className = 'exp-sync ' + (cls||''); }
+    }
+
+    async function pull(){
+      if(isLocal){ setSync('📂 本地模式', 'local'); return; }
+      try{
+        const r = await fetch(EXP_GET + '?t=' + Date.now(), {cache:'no-store'});
+        if(!r.ok) throw 0;
+        const txt = (await r.text()).trim();
+        if(txt === ''){
+          if(updatedAt > 0) push();   // 自愈：本地有数据则重建云端
+          setSync('☁️ 已同步', 'ok');
+          return;
+        }
+        const d = JSON.parse(txt);
+        if(d && typeof d.updatedAt === 'number' && d.updatedAt > updatedAt){
+          // 用户正在编辑时不覆盖，等下一轮轮询
+          if(box.querySelector('.exp-name:focus, .exp-in:focus')){
+            setSync('⏳ 编辑中·稍后同步', 'busy');
+            return;
+          }
+          items = (d.items && Array.isArray(d.items)) ? cleanItems(d.items) : DEFAULTS.map(x=>({...x}));
+          updatedAt = d.updatedAt;
+          save();
+          render();
+        }
+        setSync('☁️ 已同步', 'ok');
+      }catch(e){ setSync('⚠️ 离线·本地已存', 'off'); }
+    }
+
+    let pushTimer = null;
+    async function push(){
+      if(isLocal){ setSync('📂 本地模式', 'local'); return; }
+      setSync('🔄 同步中…', 'busy');
+      try{
+        const payload = encodeURIComponent(JSON.stringify({v:2, items, updatedAt}));
+        const r = await fetch(EXP_SET + payload, {cache:'no-store'});
+        if(!r.ok) throw 0;
+        const res = await r.json();
+        if(!res || res.status !== 1) throw 0;
+        setSync('☁️ 已同步', 'ok');
+      }catch(e){
+        setSync('⚠️ 离线·本地已存', 'off');
+        // 失败重试：3 秒后再推一次
+        if(pushTimer) clearTimeout(pushTimer);
+        pushTimer = setTimeout(()=>{ push(); }, 3000);
+      }
+    }
+
+    function pushDebounced(){
+      if(pushTimer) clearTimeout(pushTimer);
+      pushTimer = setTimeout(()=>{ push(); }, 600);
+    }
+
+    /* 本地变更统一入口：更新时间戳 → 存本地 → 延迟上云 */
+    function touch(){
+      updatedAt = Date.now();
+      save();
+      pushDebounced();
+    }
 
     let items = load();
 
@@ -1619,7 +1707,7 @@
           const it = items.find(x=>x.id===id); if(!it) return;
           if(raw === ''){
             inp.classList.remove('err'); setHint('');
-            it.amt = 0; save(); renderTotal(true); return;
+            it.amt = 0; touch(); renderTotal(true); return;
           }
           if(!VALID_AMT.test(raw)){
             inp.classList.add('err');
@@ -1627,7 +1715,7 @@
             return;
           }
           inp.classList.remove('err'); setHint('');
-          it.amt = +raw; save(); renderTotal(true);
+          it.amt = +raw; touch(); renderTotal(true);
         });
         inp.addEventListener('blur', ()=>{
           const raw = inp.value.trim();
@@ -1642,7 +1730,7 @@
           const v = inp.value.slice(0, MAX_NAME);
           if(!v.trim()){ inp.classList.add('err'); setHint('⚠️ 项目名称不能为空'); return; }
           inp.classList.remove('err'); setHint('');
-          it.nm = v; save();
+          it.nm = v; touch();
         });
       });
       // 删除
@@ -1650,7 +1738,7 @@
         btn.addEventListener('click', ()=>{
           const id = btn.dataset.delId;
           if(items.length <= 1){ setHint('⚠️ 至少保留一个项目'); return; }
-          items = items.filter(x=>x.id!==id); save(); render();
+          items = items.filter(x=>x.id!==id); touch(); render();
         });
       });
       // 添加
@@ -1658,7 +1746,7 @@
       if(addBtn) addBtn.addEventListener('click', ()=>{
         const id = 'cu_' + Date.now();
         items.push({id, ic:'🔹', nm:'花销项目', amt:0});
-        save(); render();
+        touch(); render();
         // 自动聚焦新行 + 选中名称
         setTimeout(()=>{
           const ni = box.querySelector(`.exp-name[data-name-id="${CSS.escape(id)}"]`);
@@ -1669,11 +1757,14 @@
       const resetBtn = box.querySelector('#expReset');
       if(resetBtn) resetBtn.addEventListener('click', ()=>{
         items = DEFAULTS.map(d=>({id:d.id, ic:d.ic, nm:d.nm, amt:d.def}));
-        save(); render();
+        touch(); render();
       });
     }
 
     render();
+    setSync('☁️ 连接中…', 'busy');
+    pull();
+    setInterval(pull, 3000);
   }
 
   /* ===== 前期准备进度打卡：勾选 → 动画更新进度条，并【实时云端共享同步】到所有打开分享链接的人 =====
