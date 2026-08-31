@@ -469,6 +469,17 @@
   .w-range{font-size:11px; color:var(--sub);}
   .w-desc{font-size:11.5px; color:var(--sub); margin-top:4px; line-height:1.45;}
   .w-tip{font-size:10.5px; color:var(--blue); margin-top:4px; font-weight:600;}
+  /* 实时天气 */
+  .wx-sync{font-size:11px; color:var(--sub); font-weight:500; margin-left:2px;}
+  .wx-sync.busy{color:#c47f17;}
+  .wx-sync.ok{color:#1d9a5b;}
+  .wx-sync.err{color:#d04545;}
+  .w-card.live{border-color:rgba(0,113,227,.35); box-shadow:0 0 0 3px rgba(0,113,227,.06);}
+  .w-card.live .w-icon{animation:wPop .5s ease;}
+  @keyframes wPop{0%{transform:scale(.6);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  .w-tag{display:inline-block; font-size:9.5px; font-weight:700; color:#fff; background:var(--blue); border-radius:99px; padding:1px 7px; margin-left:5px; vertical-align:1px; letter-spacing:.3px;}
+  .w-tag.trip{background:#1d9a5b;}
+  .w-upd{font-size:9.5px; color:var(--sub); margin-top:5px; opacity:.85;}
 
   /* ===== 竖版（手机/窄屏）：整页自然滚动，地图置顶且随滚动让位，不再常驻半屏挡视线 ===== */
   @media (max-width:860px){
@@ -1477,11 +1488,11 @@
         <div class="d-pl">${d.plan||''}</div></div>
       </div>`).join('');
     const weatherHtml = [
-      {city:'上海虹桥', icon:'🌙', temp:'23°C', range:'18~27°C', desc:'9/26 傍晚抵达，多云转阴，微风。夜间气温约 20°C，出站穿薄外套即可。', tip:'机场→酒店步行 10min，无需打伞'},
-      {city:'苏州 / 木渎', icon:'⛅', temp:'25°C', range:'19~29°C', desc:'9/27–28 白天多云间晴，午后偶有短时阵雨（江南秋典型）。体感舒适，适合古镇漫步与园林游览。', tip:'带把折叠伞，防晒+防阵雨'},
-      {city:'周庄', icon:'🌤️', temp:'24°C', range:'19~28°C', desc:'9/29 上午多云，水乡晨雾散后光线柔和，摇橹船体验最佳。午后转阴但不影响返程。', tip:'清晨水乡有雾，拍照更有氛围'},
-      {city:'太原 / 榆次', icon:'🌤️', temp:'19°C', range:'12~24°C', desc:'9/26 出发及 9/29 返程：北方秋季干燥晴朗，昼夜温差大。白天单衣够、早晚需加外套。', tip:'出发/返回备一件薄外套'}
-    ].map(w=>`<div class="w-card">
+      {k:'sh', city:'上海虹桥', icon:'🌙', temp:'23°C', range:'18~27°C', desc:'9/26 傍晚抵达，多云转阴，微风。夜间气温约 20°C，出站穿薄外套即可。', tip:'机场→酒店步行 10min，无需打伞'},
+      {k:'sz', city:'苏州 / 木渎', icon:'⛅', temp:'25°C', range:'19~29°C', desc:'9/27–28 白天多云间晴，午后偶有短时阵雨（江南秋典型）。体感舒适，适合古镇漫步与园林游览。', tip:'带把折叠伞，防晒+防阵雨'},
+      {k:'zz', city:'周庄', icon:'🌤️', temp:'24°C', range:'19~28°C', desc:'9/29 上午多云，水乡晨雾散后光线柔和，摇橹船体验最佳。午后转阴但不影响返程。', tip:'清晨水乡有雾，拍照更有氛围'},
+      {k:'ty', city:'太原 / 榆次', icon:'🌤️', temp:'19°C', range:'12~24°C', desc:'9/26 出发及 9/29 返程：北方秋季干燥晴朗，昼夜温差大。白天单衣够、早晚需加外套。', tip:'出发/返回备一件薄外套'}
+    ].map(w=>`<div class="w-card" data-wx="${w.k}">
         <div class="w-city">${w.city}</div>
         <div class="w-icon">${w.icon}</div>
         <div class="w-temp">${w.temp}</div>
@@ -1531,10 +1542,11 @@
       <div class="ov-sec"><div class="ov-sec-t">💰 费用明细清单 <small style="font-size:11px;color:var(--sub);font-weight:500">金额可自行修改，合计实时计算</small> <small id="expSync" class="exp-sync busy">☁️ 连接中…</small></div>
         <div class="exp" id="expList"></div></div>
       <div class="ov-sec"><div class="ov-sec-t">📅 旅行规划信息</div><div class="ov-plan">${plan}</div></div>
-      <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small>9/26–9/29 参考预报</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
+      <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small id="wxSync" class="wx-sync busy">📡 获取实时天气…</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
     initGalleries(ov);
     initPrepChecklist(ov);
     initExpenseList(ov);
+    initWeather(ov);
   }
 
   /* ===== 费用明细清单：可编辑金额 + 名称 · 数值校验 · 实时合计 · 云端同步 =====
@@ -1800,6 +1812,127 @@
     setSync('☁️ 连接中…', 'busy');
     pull();
     setInterval(pull, 3000);
+  }
+
+  /* ===== 各地天气：实时获取 + 每日最新 + 30 分钟自动刷新 =====
+     - 数据源：Open-Meteo（免 Key、CORS 开放）：实时天气 + 16 天逐日预报
+     - 智能切换：行程日（9/26–29）进入 16 天预报窗口后自动显示「行程日预报」，此前显示「今日实时」
+     - 每日最新：打开即拉取 + 每 30 分钟自动刷新；localStorage 缓存即时渲染 + 断网兜底
+     - 异常：拉取失败→显示缓存（标注时间）；无缓存→保留静态参考卡 */
+  function initWeather(root){
+    const WX_CITIES = [
+      {k:'sh', name:'上海虹桥', lat:31.34, lon:121.32, trip:'2026-09-26', tip:'机场→酒店步行 10min，无需打伞'},
+      {k:'sz', name:'苏州 / 木渎', lat:31.30, lon:120.58, trip:'2026-09-27', tip:'带把折叠伞，防晒+防阵雨'},
+      {k:'zz', name:'周庄', lat:30.90, lon:120.85, trip:'2026-09-29', tip:'清晨水乡有雾，拍照更有氛围'},
+      {k:'ty', name:'太原 / 榆次', lat:37.87, lon:112.55, trip:'2026-09-26', tip:'出发/返回备一件薄外套'}
+    ];
+    const CACHE_KEY = 'sz_wx_v1';
+    const REFRESH_MS = 30 * 60 * 1000;   // 30 分钟自动刷新
+    const syncEl = root.querySelector('#wxSync');
+    const setSync = (tx, cls) => { if(syncEl){ syncEl.textContent = tx; syncEl.className = 'wx-sync ' + (cls||''); } };
+    const nowHM = () => { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); };
+
+    // WMO 天气代码 → 图标 + 中文描述
+    const wmo = c => {
+      const M = {0:['☀️','晴'],1:['🌤️','晴间多云'],2:['⛅','多云'],3:['☁️','阴'],
+        45:['🌫️','雾'],48:['🌫️','雾凇'],
+        51:['🌦️','毛毛雨'],53:['🌦️','毛毛雨'],55:['🌦️','浓毛毛雨'],
+        56:['🌧️','冻毛毛雨'],57:['🌧️','冻毛毛雨'],
+        61:['🌦️','小雨'],63:['🌧️','中雨'],65:['⛈️','大雨'],
+        66:['🌧️','冻雨'],67:['🌧️','冻雨'],
+        71:['🌨️','小雪'],73:['🌨️','中雪'],75:['❄️','大雪'],77:['🌨️','雪粒'],
+        80:['🌦️','阵雨'],81:['🌧️','强阵雨'],82:['⛈️','暴雨'],
+        85:['🌨️','阵雪'],86:['❄️','强阵雪'],
+        95:['⛈️','雷暴'],96:['⛈️','雷暴冰雹'],99:['⛈️','雷暴冰雹']};
+      return M[c] || ['🌡️','未知'];
+    };
+    const fmt = v => Math.round(v);
+
+    // 渲染单城卡片
+    function renderCard(c, data, fromCache){
+      const card = root.querySelector(`.w-card[data-wx="${c.k}"]`);
+      if(!card || !data) return;
+      const d = data.daily || {};
+      const times = d.time || [];
+      const ti = times.indexOf(c.trip);          // 行程日是否在 16 天预报窗口内
+      let tag, ic, temp, range, desc;
+      if(ti >= 0){
+        const w = wmo(d.weather_code[ti]);
+        tag = `<span class="w-tag trip">行程日 ${c.trip.slice(5).replace('-','/')}</span>`;
+        ic = w[0]; temp = `${fmt(d.temperature_2m_max[ti])}°C`;
+        range = `${fmt(d.temperature_2m_min[ti])}~${fmt(d.temperature_2m_max[ti])}°C`;
+        desc = `${w[1]} · 降水概率 ${d.precipitation_probability_max ? (d.precipitation_probability_max[ti] ?? 0) : 0}%`;
+      }else{
+        const cur = data.current || {};
+        const w = wmo(cur.weather_code);
+        tag = `<span class="w-tag">实时</span>`;
+        ic = w[0]; temp = `${fmt(cur.temperature_2m ?? '--')}°C`;
+        range = `今日 ${fmt(d.temperature_2m_min?.[0] ?? '--')}~${fmt(d.temperature_2m_max?.[0] ?? '--')}°C`;
+        desc = `${w[1]} · 湿度 ${cur.relative_humidity_2m ?? '--'}% · 风 ${fmt(cur.wind_speed_10m ?? 0)}km/h`;
+      }
+      card.innerHTML = `<div class="w-city">${c.name}${tag}</div>
+        <div class="w-icon">${ic}</div>
+        <div class="w-temp">${temp}</div>
+        <div class="w-range">${range}</div>
+        <div class="w-desc">${desc}</div>
+        <div class="w-tip">💡 ${c.tip}</div>
+        <div class="w-upd">${fromCache ? '缓存' : '更新'}于 ${data._at || nowHM()}</div>`;
+      card.classList.add('live');
+    }
+
+    // 读取/写入缓存
+    function readCache(){
+      try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null;
+        const o = JSON.parse(raw); if(!o || !o.payload || Date.now() - o.savedAt > 24*3600*1000) return null;
+        return o; }catch(e){ return null; }
+    }
+    function writeCache(payload){
+      try{ localStorage.setItem(CACHE_KEY, JSON.stringify({savedAt: Date.now(), payload})); }catch(e){}
+    }
+
+    // 拉取全部城市（Open-Meteo：实时 + 16 天逐日）
+    async function fetchAll(){
+      setSync('📡 获取实时天气…', 'busy');
+      const results = await Promise.all(WX_CITIES.map(async c => {
+        try{
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}`
+            + `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`
+            + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max`
+            + `&timezone=Asia%2FShanghai&forecast_days=16`;
+          const r = await fetch(url, {cache:'no-store'});
+          if(!r.ok) throw new Error('HTTP ' + r.status);
+          const data = await r.json();
+          data._at = nowHM();
+          return [c, data];
+        }catch(e){ return [c, null]; }
+      }));
+      const ok = results.filter(r => r[1]);
+      if(ok.length){
+        const payload = {};
+        ok.forEach(([c, data]) => { payload[c.k] = data; renderCard(c, data, false); });
+        writeCache(payload);
+        setSync(ok.length === WX_CITIES.length
+          ? `✅ 实时·更新于 ${nowHM()}`
+          : `✅ ${ok.length}/${WX_CITIES.length} 城·更新于 ${nowHM()}`, 'ok');
+      }else{
+        const cache = readCache();
+        if(cache){
+          WX_CITIES.forEach(c => cache.payload[c.k] && renderCard(c, cache.payload[c.k], true));
+          setSync(`⚠️ 网络异常·显示缓存 ${nowHM()}`, 'err');
+        }else{
+          setSync('⚠️ 网络异常·显示参考预报', 'err');   // 保留静态卡兜底
+        }
+      }
+    }
+
+    // 启动：缓存即时渲染 → 后台拉最新 → 每 30 分钟自动刷新
+    const cache = readCache();
+    if(cache){
+      WX_CITIES.forEach(c => cache.payload[c.k] && renderCard(c, cache.payload[c.k], true));
+      setSync(`✅ 缓存·${nowHM()} 检查更新中…`, 'busy');
+    }
+    fetchAll();
+    setInterval(fetchAll, REFRESH_MS);
   }
 
   /* ===== 前期准备进度打卡：勾选 → 动画更新进度条，并【实时云端共享同步】到所有打开分享链接的人 =====
