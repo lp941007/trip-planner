@@ -333,6 +333,42 @@
   .ov-hotel .h-st{font-size:11px; color:#b8860b; font-weight:700; margin-left:4px;}
   .ov-hotel .h-dt{font-size:11.5px; color:var(--sub); margin-top:2px;}
   .ov-foot{font-size:11.5px; color:var(--sub); margin-top:10px; line-height:1.55; border-top:1px dashed var(--line); padding-top:9px;}
+
+  /* ===== 费用明细清单（可编辑金额 · 实时合计 · localStorage 持久化）===== */
+  .exp{display:flex; flex-direction:column; gap:8px;}
+  .exp-row{display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--line); border-radius:12px;
+    padding:9px 12px; transition:border-color .3s var(--ease-out), box-shadow .3s var(--ease-out);}
+  .exp-row:focus-within{border-color:var(--blue); box-shadow:var(--shadow);}
+  .exp-ic{font-size:17px; flex-shrink:0;}
+  .exp-main{flex:1; min-width:0;}
+  .exp-nm{font-weight:700; font-size:13.5px; color:var(--ink);}
+  .exp-sub{font-size:11px; color:var(--sub); margin-top:1px; line-height:1.4;}
+  .exp-in-wrap{display:flex; align-items:center; gap:4px; flex-shrink:0;}
+  .exp-in-wrap .cur{font-size:13px; font-weight:700; color:var(--sub);}
+  .exp-in{width:100px; padding:6px 9px; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink);
+    font-size:14px; font-weight:700; text-align:right; font-variant-numeric:tabular-nums; outline:none;
+    transition:border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);}
+  .exp-in:focus{border-color:var(--blue); box-shadow:0 0 0 3px rgba(29,111,184,.12);}
+  .exp-in.err{border-color:#e2452f; box-shadow:0 0 0 3px rgba(226,69,47,.12);}
+  .exp-in::-webkit-outer-spin-button, .exp-in::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .exp-in[type=number]{-moz-appearance:textfield; appearance:textfield;}
+  .exp-hint{font-size:11px; color:#e2452f; font-weight:600; min-height:15px; text-align:right; line-height:1.4;}
+  .exp-total{display:flex; justify-content:space-between; align-items:baseline; border-radius:12px; padding:11px 14px; margin-top:3px;
+    background:linear-gradient(135deg,#1d6fb8,#16a085); color:#fff;}
+  .exp-total .k{font-size:13px; font-weight:700; opacity:.92;}
+  .exp-total .v{font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1;}
+  .exp-total .v small{font-size:11px; font-weight:500; opacity:.85; margin-left:3px;}
+  .exp-total .v.bump{animation:expBump .32s var(--ease-out);}
+  @keyframes expBump{0%{transform:scale(1);}45%{transform:scale(1.12);}100%{transform:scale(1);}}
+  .exp-tools{display:flex; justify-content:flex-end; align-items:center; gap:10px;}
+  .exp-reset{background:none; border:none; font-size:11px; color:var(--sub); cursor:pointer; padding:2px 4px;
+    text-decoration:underline dotted; transition:color .25s;}
+  .exp-reset:hover{color:var(--blue);}
+  @media(max-width:420px){
+    .exp-row{flex-wrap:wrap;}
+    .exp-in-wrap{width:100%; justify-content:flex-end;}
+    .exp-in{flex:1;}
+  }
   .ov-plan{display:flex; flex-direction:column; gap:8px;}
   .ov-day{display:flex; gap:12px; align-items:stretch;}
   .ov-day .d-no{flex:0 0 64px; text-align:center; background:linear-gradient(135deg,#1d6fb8,#16a085); color:#fff;
@@ -1451,10 +1487,106 @@
       <div class="ov-sec"><div class="ov-sec-t">✈️ 往返交通信息</div>${transit}</div>
       <div class="ov-sec"><div class="ov-sec-t">🏨 全程住宿信息</div><div class="ov-hotels">${hotels}</div>
         <div class="ov-foot">💡 汉庭为经济连锁、干净实惠；木渎悦华为万达旗下中高端度假酒店，白墙黛瓦江南庭院风、步行即达木渎古镇，是“不默认亚朵、选性价比 + 位置”的稳妥组合。房价为参考，以酒店实时房态为准。</div></div>
+      <div class="ov-sec"><div class="ov-sec-t">💰 费用明细清单 <small style="font-size:11px;color:var(--sub);font-weight:500">金额可自行修改，合计实时计算</small></div>
+        <div class="exp" id="expList"></div></div>
       <div class="ov-sec"><div class="ov-sec-t">📅 旅行规划信息</div><div class="ov-plan">${plan}</div></div>
       <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small>9/26–9/29 参考预报</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
     initGalleries(ov);
     initPrepChecklist(ov);
+    initExpenseList(ov);
+  }
+
+  /* ===== 费用明细清单：可编辑金额 · 数值校验 · 实时合计 · localStorage 持久化 =====
+     - 五类费用：住宿 / 机票 / 火车票 / 租车 / 景点门票，默认值取自当前行程预算常量
+     - 校验：仅允许非负数、最多两位小数；无效输入红框提示且不参与合计（保留上一次有效值）
+     - 空/零按 0 计；离开页面再进入，已填金额从 localStorage 恢复 */
+  function initExpenseList(root){
+    const box = root.querySelector('#expList');
+    if(!box) return;
+    const STORE = 'sz_exp_v1';
+    const CATS = [
+      {key:'hotel',  ic:'🏨', tx:'住宿',     sub:'汉庭 ¥370 + 木渎悦华 ¥1,870（按间计价）', def: HANTING_3 + MUUDU_HOTEL_3},
+      {key:'flight', ic:'✈️', tx:'机票',     sub:'去程 MU5209 ¥2,101 + 返程 MU5220 ¥3,291', def: FLIGHT_3 + RETURN_3},
+      {key:'train',  ic:'🚄', tx:'火车票',   sub:'G8357 ¥174 + C3008 ¥168（3人）',           def: 342},
+      {key:'car',    ic:'🚗', tx:'租车',     sub:'神州租车 3 天约 ¥1,100 + 油费过路约 ¥400', def: 1500},
+      {key:'ticket', ic:'🎫', tx:'景点门票', sub:'拙政园 / 虎丘 / 留园 / 周庄 × 3 人',        def: LOCAL_3}
+    ];
+    // 读持久化数据（异常时静默回退默认值）
+    let saved = {};
+    try{ saved = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; }catch(e){ saved = {}; }
+    // 渲染行
+    box.innerHTML = CATS.map(c=>`<div class="exp-row">
+        <span class="exp-ic">${c.ic}</span>
+        <span class="exp-main"><div class="exp-nm">${c.tx}</div><div class="exp-sub">${c.sub}</div></span>
+        <span class="exp-in-wrap"><span class="cur">¥</span>
+          <input class="exp-in" type="text" inputmode="decimal" autocomplete="off" data-exp="${c.key}"
+            value="${(c.key in saved && saved[c.key] !== '' && isFinite(+saved[c.key])) ? saved[c.key] : c.def}"
+            aria-label="${c.tx}金额（元）"></span>
+      </div>`).join('') +
+      `<div class="exp-hint" id="expHint" role="alert"></div>
+       <div class="exp-total"><span class="k">合计（3 人）</span><span class="v" id="expTotal">¥0<small>元</small></span></div>
+       <div class="exp-tools"><button class="exp-reset" id="expReset" type="button">恢复默认值</button></div>`;
+    const inputs = Array.from(box.querySelectorAll('.exp-in'));
+    const totalEl = box.querySelector('#expTotal');
+    const hintEl  = box.querySelector('#expHint');
+    const resetEl = box.querySelector('#expReset');
+    const VALID = /^(?:\d{1,7})(?:\.\d{1,2})?$/;   // 非负数，最多两位小数
+    const fmt = v => '¥' + v.toLocaleString('zh-CN', {minimumFractionDigits:0, maximumFractionDigits:2});
+
+    function saveLocal(vals){
+      try{ localStorage.setItem(STORE, JSON.stringify(vals)); }catch(e){}
+    }
+    function currentVals(){
+      const vals = {};
+      CATS.forEach(c=>{ vals[c.key] = (c.key in saved && isFinite(+saved[c.key])) ? +saved[c.key] : c.def; });
+      return vals;
+    }
+    function renderTotal(bump){
+      const vals = currentVals();
+      const sum = CATS.reduce((s,c)=> s + (vals[c.key] || 0), 0);
+      totalEl.innerHTML = fmt(sum) + '<small>元</small>';
+      if(bump){ totalEl.classList.remove('bump'); void totalEl.offsetWidth; totalEl.classList.add('bump'); }
+    }
+    function setHint(txt){
+      if(hintEl) hintEl.textContent = txt || '';
+      inputs.forEach(inp=>{
+        const bad = txt && inp.classList.contains('err');
+        if(!bad) inp.classList.remove('err');
+      });
+    }
+    inputs.forEach(inp=>{
+      const key = inp.dataset.exp;
+      inp.addEventListener('input', ()=>{
+        const raw = inp.value.trim();
+        if(raw === ''){                       // 清空按 0 处理
+          inp.classList.remove('err');
+          setHint('');
+          saved[key] = 0;
+          saveLocal(saved); renderTotal(true);
+          return;
+        }
+        if(!VALID.test(raw)){                 // 无效：提示 + 红框，合计保持上一次有效值
+          inp.classList.add('err');
+          setHint('⚠️ 请输入非负数字，最多保留两位小数');
+          return;
+        }
+        inp.classList.remove('err');
+        setHint('');
+        saved[key] = +raw;
+        saveLocal(saved); renderTotal(true);
+      });
+      inp.addEventListener('blur', ()=>{      // 失焦时规范化显示（如 12.50 → 12.5）
+        const raw = inp.value.trim();
+        if(VALID.test(raw)){ inp.value = String(+raw); }
+      });
+    });
+    if(resetEl){
+      resetEl.addEventListener('click', ()=>{
+        CATS.forEach(c=>{ saved[c.key] = c.def; const inp = inputs.find(i=>i.dataset.exp === c.key); if(inp){ inp.value = c.def; inp.classList.remove('err'); } });
+        setHint(''); saveLocal(saved); renderTotal(true);
+      });
+    }
+    renderTotal(false);
   }
 
   /* ===== 前期准备进度打卡：勾选 → 动画更新进度条，并【实时云端共享同步】到所有打开分享链接的人 =====
