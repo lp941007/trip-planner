@@ -1024,7 +1024,7 @@
 </div>`, pois:[
       {t:'09:00', cat:'景点', name:'周庄古镇', lng:120.8510, lat:31.1120,
         desc:'中国第一水乡，双桥、沈厅、张厅沿水铺开。早上木渎悦华退房、自驾带行李约 56min（47km，苏福快速→友新→江陵快速→周湖线，过路费约 ¥25）到周庄，先到【游客服务中心】寄存行李，再轻装坐摇橹船、漫游水巷。',
-        meta:{'门票':'¥100（联票）','推荐':'双桥、摇橹船','寄存':'游客服务中心','自驾':'木渎≈56min'}, img:'', info:'周庄位于苏州东南约 38km，9/29 早上木渎悦华退房后自驾约 56min（47km，走苏福快速→友新快速→江陵快速→周湖线，过路费约 ¥25）到周庄。到镇口【游客服务中心】免费寄存行李（凭门票 / 身份证），停好车轻装游双桥、沈厅、张厅，坐摇橹船（¥80–120/船）看水上明清老宅，午后在临河茶馆点碧螺春。开放约 7:30–21:00，联票 ¥100（网购 ¥88），景区停车场约 ¥20/次。'},
+        meta:{'门票':'¥80（联票）','推荐':'双桥、摇橹船','寄存':'游客服务中心','自驾':'木渎≈56min'}, img:'', info:'周庄位于苏州东南约 38km，9/29 早上木渎悦华退房后自驾约 56min（47km，走苏福快速→友新快速→江陵快速→周湖线，过路费约 ¥25）到周庄。到镇口【游客服务中心】免费寄存行李（凭门票 / 身份证），停好车轻装游双桥、沈厅、张厅，坐摇橹船（¥80–120/船）看水上明清老宅，午后在临河茶馆点碧螺春。开放约 7:30–21:00，联票 ¥80，景区停车场约 ¥20/次。'},
       {t:'12:30', cat:'美食', name:'周庄 · 万三蹄与阿婆茶', lng:120.8490, lat:31.1100,
         desc:'坐在临水老宅尝周庄招牌——万三蹄（沈万三蹄膀，酱红酥烂、肥而不腻），配一盅阿婆茶、咬一口青团，水乡午饭最有味道。',
         meta:{'招牌':'万三蹄、阿婆茶','人均':'¥60–100','贴士':'临河餐馆'}, img:'', info:'周庄美食以“万三蹄”最出名——相传沈万三待客的酱蹄膀，浓油赤酱、皮糯肉酥，可整只也可切块；配阿婆茶（当地待客的三道茶之一）、青团、撑腰糕等水乡点心。镇内沿河餐馆（如沈厅酒家、古镇饭店）人均约 ¥60–100，坐在临水窗边边吃边看摇橹船经过，是 DAY4 独有的水乡味觉记忆。'},
@@ -1059,15 +1059,15 @@
   const MUUDU_HOTEL_3 = 1870;       // 木渎悦华 扇衾套房 3人2晚（9/27–29，家庭套房按间计价，不随人数变）
   const RETURN_3 = 3291;            // MU5220：刘鹏¥1084 + 刘坤/武艳辉合计¥2207 = 3291（含机建燃油，票价¥2841+机建¥450）
   const TRANSIT_3 = 1842;           // 高铁往返(G8357 ¥174 + C3008 ¥168)3人¥342 + 一嗨租车3天(大众帕萨特·苏州南站店，车租+基础服务费)≈¥1100 + 油费过路≈¥400（代步车替代原打车）
-  const LOCAL_3 = 762;              // 当地消费（估算）：仅门票(木渎古镇¥64+留园¥55+拙政园+虎丘套票¥135)×3 = ¥762（餐饮、应急等费用已取消）
-  const BUDGET = FLIGHT_3 + HANTING_3 + MUUDU_HOTEL_3 + RETURN_3 + TRANSIT_3 + LOCAL_3; // 10236
+  const LOCAL_3 = 1002;             // 当地消费（估算）：仅门票(木渎古镇¥64+留园¥55+拙政园+虎丘套票¥135+周庄¥80)×3 = ¥1002（餐饮、应急等费用已取消）
+  const BUDGET = FLIGHT_3 + HANTING_3 + MUUDU_HOTEL_3 + RETURN_3 + TRANSIT_3 + LOCAL_3; // 10476
   document.getElementById('badges').innerHTML = `
     <div class="badge"><div class="v">${DAYS.length}</div><div class="k">天数 DAYS</div></div>
     <div class="badge"><div class="v">${totalPoi}</div><div class="k">POI 数</div></div>
-    <div class="badge"><div class="v" id="badgeBudget">¥10,236</div><div class="k" id="badgeBudgetK">3人总预算</div></div>`;
+    <div class="badge"><div class="v" id="badgeBudget">¥10,476</div><div class="k" id="badgeBudgetK">3人总预算</div></div>`;
   // 预算分项明细：硬编码初值（向后兼容），由 initExpenseList() 启动后根据云端 items 实时重算
   // 触发：renderTotal() → recomputeBudgetBar()，覆盖本地修改/远端拉取/重置/增删改所有路径
-  document.getElementById('budgetBar').innerHTML = `机票 <b id="bbFlight">¥5,392</b> ＋ 住宿 <b id="bbHotel">¥2,240</b> ＋ 交通 <b id="bbTransit">¥1,842</b> ＋ 门票 <b id="bbTicket">¥762</b> ＝ <b class="bb" id="bbTotal">3人 ¥10,236</b>（人均 <b id="bbPer">¥3,412</b>）`;
+  document.getElementById('budgetBar').innerHTML = `机票 <b id="bbFlight">¥5,392</b> ＋ 住宿 <b id="bbHotel">¥2,240</b> ＋ 交通 <b id="bbTransit">¥1,842</b> ＋ 门票 <b id="bbTicket">¥1,002</b> ＝ <b class="bb" id="bbTotal">3人 ¥10,476</b>（人均 <b id="bbPer">¥3,492</b>）`;
 
   /* ===== 地图初始化（高德免 Key 栅格瓦片）===== */
   const map = L.map('map',{zoomControl:false, attributionControl:false}).setView([31.30,120.62],12);
