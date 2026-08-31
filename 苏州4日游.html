@@ -1054,8 +1054,9 @@
     <div class="badge"><div class="v">${DAYS.length}</div><div class="k">天数 DAYS</div></div>
     <div class="badge"><div class="v">${totalPoi}</div><div class="k">POI 数</div></div>
     <div class="badge"><div class="v" id="badgeBudget">¥10,359</div><div class="k" id="badgeBudgetK">3人总预算</div></div>`;
-  // 预算分项明细（3 人固定总览，静态展示；交互式计算器已移除）
-  document.getElementById('budgetBar').innerHTML = `机票 <b>¥5,392</b> ＋ 住宿 <b>¥2,240</b> ＋ 交通 <b>¥1,842</b> ＋ 门票 <b>¥885</b> ＝ <b class="bb">3人 ¥10,359</b>（人均 ¥3,453）`;
+  // 预算分项明细：硬编码初值（向后兼容），由 initExpenseList() 启动后根据云端 items 实时重算
+  // 触发：renderTotal() → recomputeBudgetBar()，覆盖本地修改/远端拉取/重置/增删改所有路径
+  document.getElementById('budgetBar').innerHTML = `机票 <b id="bbFlight">¥5,392</b> ＋ 住宿 <b id="bbHotel">¥2,240</b> ＋ 交通 <b id="bbTransit">¥1,842</b> ＋ 门票 <b id="bbTicket">¥885</b> ＝ <b class="bb" id="bbTotal">3人 ¥10,359</b>（人均 <b id="bbPer">¥3,453</b>）`;
 
   /* ===== 地图初始化（高德免 Key 栅格瓦片）===== */
   const map = L.map('map',{zoomControl:false, attributionControl:false}).setView([31.30,120.62],12);
@@ -1692,6 +1693,40 @@
       if(!totalEl) return;
       totalEl.innerHTML = fmt(sum) + '<small>元</small>';
       if(bump){ totalEl.classList.remove('bump'); void totalEl.offsetWidth; totalEl.classList.add('bump'); }
+      // 联动顶部预算条：机票/住宿/交通/门票/总计/人均 + badge 总预算，全部从 items 派生
+      recomputeBudgetBar();
+    }
+
+    /* 顶部预算条联动：从 items 派生，零额外网络请求
+     * 映射：机票←flight ｜ 住宿←hotel ｜ 交通←train+car ｜ 门票←ticket ｜ 餐饮/其他/自定义 不计
+     * 边界：找不到 id 时静默跳过（DOM 尚未挂载完成时也不报错）；跨端拉取靠 pull 的 last-write-wins */
+    function recomputeBudgetBar(){
+      const get = (id)=> items.find(x=>x.id===id);
+      const flight = +(get('flight')?.amt) || 0;
+      const hotel  = +(get('hotel')?.amt)  || 0;
+      const train  = +(get('train')?.amt)  || 0;
+      const car    = +(get('car')?.amt)    || 0;
+      const ticket = +(get('ticket')?.amt) || 0;
+      const transit = train + car;
+      const total = flight + hotel + transit + ticket;
+      const per = total / 3;
+      const $ = (id)=> document.getElementById(id);
+      const fmtYuan = (v)=> '¥' + Math.round(v).toLocaleString('zh-CN');
+      const nodes = [
+        ['bbFlight', fmtYuan(flight)],
+        ['bbHotel',  fmtYuan(hotel)],
+        ['bbTransit',fmtYuan(transit)],
+        ['bbTicket', fmtYuan(ticket)],
+        ['bbTotal',  '3人 ' + fmtYuan(total)],
+        ['bbPer',    fmtYuan(per)],
+        ['badgeBudget', fmtYuan(total)]
+      ];
+      nodes.forEach(([id, txt])=>{
+        const el = $(id);
+        if(!el) return;
+        el.textContent = txt;
+        el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+      });
     }
     function setHint(txt){
       const h = box.querySelector('#expHint');
