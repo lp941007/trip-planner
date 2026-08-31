@@ -400,6 +400,24 @@
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
     transform:translateX(-100%); animation:prepShine 2.2s var(--ease-inout) infinite;}
   @keyframes prepShine{0%{transform:translateX(-100%);} 60%,100%{transform:translateX(200%);}}
+  /* 进度条行：进度条 + 折叠/展开按钮 */
+  .prep-barrow{display:flex; align-items:center; gap:10px; margin-bottom:13px;}
+  .prep-barrow .prep-bar{flex:1; margin-bottom:0;}
+  .prep-toggle{display:none; align-items:center; gap:4px; flex:0 0 auto; font-size:11px; font-weight:700; color:var(--blue);
+    background:rgba(0,113,227,.08); border:1px solid rgba(0,113,227,.28); border-radius:999px; padding:4px 11px; cursor:pointer;
+    line-height:1.3; -webkit-tap-highlight-color:transparent;
+    transition:background .25s var(--ease-out), border-color .25s var(--ease-out), transform .25s var(--ease-spring);}
+  .prep-toggle.show{display:inline-flex;}
+  .prep-toggle:hover{background:rgba(0,113,227,.16); border-color:var(--blue);}
+  .prep-toggle:active{transform:scale(.95);}
+  .prep-toggle .prep-tg-ic{font-size:9px; display:inline-block; transition:transform .35s var(--ease-out);}
+  /* 明细折叠区：grid-template-rows 0fr/1fr 实现平滑高度过渡 */
+  .prep-detail{display:grid; grid-template-rows:1fr; visibility:visible;
+    transition:grid-template-rows .5s var(--ease-inout), opacity .35s var(--ease-out);}
+  .prep-detail.collapsed{grid-template-rows:0fr; opacity:0; visibility:hidden;
+    transition:grid-template-rows .5s var(--ease-inout), opacity .3s var(--ease-out), visibility 0s .5s;}
+  .prep-detail-in{min-height:0; overflow:hidden;}
+  @media(prefers-reduced-motion:reduce){ .prep-detail, .prep-detail.collapsed{transition:none;} }
   .prep-list{display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px;}
   @media(max-width:640px){ .prep-list{grid-template-columns:1fr 1fr;} }
   @media(max-width:420px){ .prep-list{grid-template-columns:1fr;} }
@@ -1477,10 +1495,15 @@
           <div class="prep-top-l">🎯 出发前准备清单 <small id="prepSync" class="prep-sync busy">☁️ 连接中…</small></div>
           <div class="prep-pct" id="prepPct">0%</div>
         </div>
-        <div class="prep-bar"><div class="prep-fill" id="prepFill"></div></div>
-        <div class="prep-list" id="prepList">${prepList}</div>
-        <div class="prep-foot"><span id="prepMsg">还没开始？点上方任意一项开始打卡吧 ✨</span>
-          <button class="prep-reset" id="prepReset" type="button">重置</button></div>
+        <div class="prep-barrow">
+          <div class="prep-bar"><div class="prep-fill" id="prepFill"></div></div>
+          <button class="prep-toggle" id="prepToggle" type="button" aria-expanded="true" aria-controls="prepDetail" title="展开/收起准备清单明细"><span class="prep-tg-ic">▾</span><span class="prep-tg-tx">收起明细</span></button>
+        </div>
+        <div class="prep-detail" id="prepDetail"><div class="prep-detail-in">
+          <div class="prep-list" id="prepList">${prepList}</div>
+          <div class="prep-foot"><span id="prepMsg">还没开始？点上方任意一项开始打卡吧 ✨</span>
+            <button class="prep-reset" id="prepReset" type="button">重置</button></div>
+        </div></div>
       </div>`;
     ov.innerHTML = `<div class="ov-head">🗺️ 全程规划 · 4 日游总览 <small>往返交通 · 全程住宿 · 旅行规划</small></div>
       <div class="ov-sec"><div class="ov-sec-t">✅ 前期准备进度</div>${prep}</div>
@@ -1601,7 +1624,27 @@
     const msg  = root.querySelector('#prepMsg');
     const sync = root.querySelector('#prepSync');
     const resetBtn = root.querySelector('#prepReset');
+    const detail = root.querySelector('#prepDetail');
+    const tg = root.querySelector('#prepToggle');
     if(!list || !fill || !pct) return;
+    /* 自动折叠状态机：
+     * - 达成 100%（含初始化即 100%）→ 自动折叠明细，仅保留进度条
+     * - 100% 时用户手动展开 → userExpanded=true，之后 render 不再自动折叠（状态未变不重置）
+     * - 进度回落 <100% → 强制展开并解锁 userExpanded */
+    let userExpanded = false;
+    let wasDone100 = null;
+
+    function setCollapsed(c){
+      if(!detail) return;
+      detail.classList.toggle('collapsed', c);
+      if(tg){
+        tg.setAttribute('aria-expanded', c ? 'false' : 'true');
+        tg.classList.toggle('collapsed', c);
+        const ic = tg.querySelector('.prep-tg-ic'), tx = tg.querySelector('.prep-tg-tx');
+        if(ic) ic.textContent = c ? '▸' : '▾';
+        if(tx) tx.textContent = c ? '展开明细' : '收起明细';
+      }
+    }
     const items = Array.from(list.querySelectorAll('.prep-item'));
     const total = items.length;
     const STORE = 'sz_prep_v1';
@@ -1650,6 +1693,27 @@
         if(percent === 0)        msg.textContent = '还没开始？点上方任意一项开始打卡吧 ✨';
         else if(percent === 100) msg.textContent = '🎉 全部准备就绪，可以安心出发啦！';
         else                     msg.textContent = `已完成 ${done}/${total} 项，继续加油 💪`;
+      }
+      /* 自动折叠：仅在"新达成 100%"时重置用户选择；已有用户选择则尊重 */
+      if(detail){
+        if(percent === 100){
+          if(wasDone100 !== true){
+            userExpanded = false;
+            if(animate){   // 先播完最后一项勾选与 100% 数字动画，再平滑折叠
+              setTimeout(()=>{ if(wasDone100 === true && !userExpanded) setCollapsed(true); }, 800);
+            } else {
+              setCollapsed(true);   // 初始化即 100%：直接折叠（无动画）
+            }
+          } else {
+            setCollapsed(!userExpanded);
+          }
+          if(tg) tg.classList.add('show');
+        }else{
+          userExpanded = false;                            // 状态变化 → 解锁并展开
+          setCollapsed(false);
+          if(tg) tg.classList.remove('show');
+        }
+        wasDone100 = (percent === 100);
       }
     }
 
@@ -1716,6 +1780,16 @@
       it.addEventListener('click', ()=> toggle(it));
       it.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(it); } });
     });
+    if(tg){
+      tg.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!detail) return;
+        const collapsed = detail.classList.contains('collapsed');
+        userExpanded = collapsed;        // 手动展开后锁定，不被后续 render 重置
+        setCollapsed(!collapsed);
+      });
+      tg.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); tg.click(); } });
+    }
     if(resetBtn){
       resetBtn.addEventListener('click', ()=>{
         state = {}; updatedAt = Date.now();
