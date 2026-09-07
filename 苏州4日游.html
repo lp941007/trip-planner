@@ -1507,8 +1507,11 @@
       {key:'train1',  ic:'🚄', tx:'虹桥→苏州', sub:'G8357 买票 9/13'},
       {key:'train2',  ic:'🚄', tx:'苏州→上海', sub:'C3008 买票 9/15'},
       {key:'carrent', ic:'🚗', tx:'一嗨租车',   sub:'帕萨特 · 苏州南站店取还车预约'},
-      {key:'ticket',  ic:'🎫', tx:'门票',     sub:'园林 / 古镇门票'},
-      {key:'booking', ic:'📅', tx:'景点预约', sub:'需实名预约的景点'},
+      {key:'tk_hq',   ic:'🎫', tx:'虎丘门票',   sub:'¥135 套票 · 含拙政园'},
+      {key:'tk_md',   ic:'🎫', tx:'木渎古镇门票', sub:'联票 ¥64/人'},
+      {key:'tk_zzy',  ic:'🎫', tx:'拙政园门票', sub:'¥135 套票 · 含虎丘'},
+      {key:'tk_ly',   ic:'🎫', tx:'留园门票',   sub:'¥55/人'},
+      {key:'tk_zz',   ic:'🎫', tx:'周庄门票',   sub:'¥80/人'},
       {key:'checkin1', ic:'🪪', tx:'出发值机', sub:'MU5209 · 9/26 起飞前24h值机选座'},
       {key:'checkin2', ic:'🪪', tx:'返程值机', sub:'MU5220 · 9/29 起飞前24h值机选座'},
       {key:'luggage', ic:'🧳', tx:'准备行李', sub:'衣物 / 充电 / 常用药'},
@@ -1987,6 +1990,15 @@
       else { state = c; updatedAt = 0; }
     }catch(e){ state = {}; updatedAt = 0; }
 
+    /* 清理失效条目：剔除已移除项（旧「门票/景点预约」等）残留的勾选状态，防云端脏数据 */
+    const validKeys = new Set(items.map(it=>it.dataset.prep));
+    function purgeState(){
+      let changed = false;
+      for(const k of Object.keys(state)){ if(!validKeys.has(k)){ delete state[k]; changed = true; } }
+      return changed;
+    }
+    if(purgeState()) saveLocal();
+
     function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({v:1, items:state, updatedAt})); }catch(e){} }
     function setSync(txt, cls){ if(sync){ sync.textContent = txt; sync.className = 'prep-sync ' + (cls||''); } }
 
@@ -2067,6 +2079,7 @@
         if(d && typeof d.updatedAt === 'number' && d.updatedAt > updatedAt){
           state = (d.items && typeof d.items === 'object') ? d.items : {};
           updatedAt = d.updatedAt;
+          if(purgeState()) push();   // 剔除失效 key 后回写云端，保持跨端干净
           saveLocal();
           applyState(true);
         }
