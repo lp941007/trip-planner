@@ -455,6 +455,19 @@
   .prep-item.checked .prep-tx{color:var(--shop);}
   .prep-item.checked .prep-tx-sub{text-decoration:line-through; opacity:.6;}
   .prep-tx-sub{display:block; font-size:10.5px; font-weight:500; color:var(--sub); margin-top:1px;}
+  /* 清单增删（❌ 删除 / ➕ 添加 / 自定义项 cu_ 前缀标题可编辑改名） */
+  .prep-item{position:relative; padding-right:32px;}
+  .prep-del{position:absolute; top:5px; right:5px; width:20px; height:20px; line-height:18px; text-align:center;
+    font-size:10px; border:none; background:none; cursor:pointer; border-radius:6px; padding:0; opacity:.35;
+    transition:opacity .25s var(--ease-out), background .25s var(--ease-out), transform .25s var(--ease-spring);}
+  .prep-del:hover{opacity:1; background:rgba(255,59,48,.12); transform:scale(1.15);}
+  .prep-add{grid-column:1 / -1; display:flex; align-items:center; justify-content:center; gap:6px;
+    border:1.5px dashed var(--line); border-radius:11px; padding:9px 11px; background:none; cursor:pointer;
+    font-size:12.5px; font-weight:700; color:var(--sub);
+    transition:border-color .3s var(--ease-out), color .3s var(--ease-out), background .3s var(--ease-out), transform .25s var(--ease-spring);}
+  .prep-add:hover{border-color:var(--blue); color:var(--blue); background:rgba(0,113,227,.06); transform:translateY(-2px);}
+  .prep-tx[contenteditable]{outline:none; border-bottom:1.5px dashed var(--line); min-width:40px; cursor:text; user-select:text;}
+  .prep-tx[contenteditable]:focus{border-bottom-color:var(--blue);}
   .prep-foot{font-size:11.5px; color:var(--sub); margin-top:11px; line-height:1.5; display:flex; align-items:center; gap:6px;}
   .prep-reset{margin-left:auto; font-size:11px; font-weight:700; color:var(--blue); background:none; border:none;
     cursor:pointer; padding:3px 8px; border-radius:8px; transition:background .25s var(--ease-out);}
@@ -1517,11 +1530,7 @@
       {key:'luggage', ic:'🧳', tx:'准备行李', sub:'衣物 / 充电 / 常用药'},
       {key:'idcard',  ic:'🪪', tx:'身份证件', sub:'身份证 / 护照证件'}
     ];
-    const prepList = prepItems.map(p=>`<div class="prep-item" data-prep="${p.key}" role="checkbox" aria-checked="false" tabindex="0">
-        <span class="prep-cb"></span>
-        <span class="prep-ic">${p.ic}</span>
-        <span class="prep-tx">${p.tx}<span class="prep-tx-sub">${p.sub}</span></span>
-      </div>`).join('');
+    // 清单条目改为动态渲染（支持 ❌ 删除 / ➕ 添加，见 initPrepChecklist），prepItems 仅作默认清单传入
     const prep = `<div class="prep">
         <div class="prep-top">
           <div class="prep-top-l">🎯 出发前准备清单 <small id="prepSync" class="prep-sync busy">☁️ 连接中…</small></div>
@@ -1532,7 +1541,7 @@
           <button class="prep-toggle" id="prepToggle" type="button" aria-expanded="true" aria-controls="prepDetail" title="展开/收起准备清单明细"><span class="prep-tg-ic">▾</span><span class="prep-tg-tx">收起明细</span></button>
         </div>
         <div class="prep-detail" id="prepDetail"><div class="prep-detail-in">
-          <div class="prep-list" id="prepList">${prepList}</div>
+          <div class="prep-list" id="prepList"></div>
           <div class="prep-foot"><span id="prepMsg">还没开始？点上方任意一项开始打卡吧 ✨</span>
             <button class="prep-reset" id="prepReset" type="button">重置</button></div>
         </div></div>
@@ -1547,7 +1556,7 @@
       <div class="ov-sec"><div class="ov-sec-t">📅 旅行规划信息</div><div class="ov-plan">${plan}</div></div>
       <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small id="wxSync" class="wx-sync busy">📡 获取实时天气…</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
     initGalleries(ov);
-    initPrepChecklist(ov);
+    initPrepChecklist(ov, prepItems);
     initExpenseList(ov);
     initWeather(ov);
   }
@@ -1649,7 +1658,8 @@
       if(isLocal){ setSync('📂 本地模式', 'local'); return; }
       setSync('🔄 同步中…', 'busy');
       try{
-        const payload = encodeURIComponent(JSON.stringify({v:2, items, updatedAt}));
+        // 双重编码：textdb 服务端会做两次查询解码，单次编码会把 + 吞成空格（实测）
+        const payload = encodeURIComponent(encodeURIComponent(JSON.stringify({v:2, items, updatedAt})));
         const r = await fetch(EXP_SET + payload, {cache:'no-store'});
         if(!r.ok) throw 0;
         const res = await r.json();
@@ -1943,7 +1953,7 @@
      - 机制：本地即时响应 + 后台上云 + 每 3s 轮询拉取他人更新（updatedAt 时间戳做 last-write-wins 合并）
      - file:// 协议自动降级为纯本地模式（浏览器拦截 null origin 跨域请求）
      - localStorage 仅作离线兜底缓存 */
-  function initPrepChecklist(root){
+  function initPrepChecklist(root, DEFAULT_LIST){
     const list = root.querySelector('#prepList');
     const fill = root.querySelector('#prepFill');
     const pct  = root.querySelector('#prepPct');
@@ -1971,8 +1981,6 @@
         if(tx) tx.textContent = c ? '展开明细' : '收起明细';
       }
     }
-    const items = Array.from(list.querySelectorAll('.prep-item'));
-    const total = items.length;
     const STORE = 'sz_prep_v1';
     /* 云端存储：textdb.online（固定键、写入即建、CORS 开放；键永不过期，数据被清理也会在下次勾选时自动重建）
      * 注意：file:// 协议下浏览器会拦截跨域 fetch（null origin），此时自动降级为纯本地模式 */
@@ -1981,26 +1989,62 @@
     const API_SET  = 'https://textdb.online/update/?key=' + KEY + '&value=';
     const isLocalFile = location.protocol === 'file:';   // file:// 无法跨域 fetch
 
+    let plist = (Array.isArray(DEFAULT_LIST) && DEFAULT_LIST.length) ? DEFAULT_LIST.slice() : [];  // 动态清单条目
     let state = {};          // {key:true}
     let updatedAt = 0;       // 本地已知的最新时间戳
-    // 读本地缓存（兼容旧格式：直接是 {key:true} map）
+    const currentItems = ()=> Array.from(list.querySelectorAll('.prep-item'));
+    // 读本地缓存（兼容 v2 {items,list,updatedAt} / v1 {items,updatedAt} / 更早 {key:true} map）
     try{
       const c = JSON.parse(localStorage.getItem(STORE) || '{}') || {};
-      if(c && typeof c.items === 'object' && c.items){ state = c.items; updatedAt = c.updatedAt || 0; }
+      if(c && typeof c.items === 'object' && c.items){
+        state = c.items; updatedAt = c.updatedAt || 0;
+        if(Array.isArray(c.list) && c.list.length) plist = c.list;
+      }
       else { state = c; updatedAt = 0; }
     }catch(e){ state = {}; updatedAt = 0; }
 
-    /* 清理失效条目：剔除已移除项（旧「门票/景点预约」等）残留的勾选状态，防云端脏数据 */
-    const validKeys = new Set(items.map(it=>it.dataset.prep));
+    /* 清理失效条目：勾选状态里不在当前清单 plist 的 key 一律剔除，防云端脏数据 */
     function purgeState(){
+      const validKeys = new Set(plist.map(p=>p.key));
       let changed = false;
       for(const k of Object.keys(state)){ if(!validKeys.has(k)){ delete state[k]; changed = true; } }
       return changed;
     }
     if(purgeState()) saveLocal();
 
-    function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({v:1, items:state, updatedAt})); }catch(e){} }
+    function saveLocal(){ try{ localStorage.setItem(STORE, JSON.stringify({v:2, items:state, list:plist, updatedAt})); }catch(e){} }
     function setSync(txt, cls){ if(sync){ sync.textContent = txt; sync.className = 'prep-sync ' + (cls||''); } }
+
+    /* ===== 动态清单：❌ 删除 / ➕ 添加 / 自定义项（cu_ 前缀）标题可编辑 ===== */
+    let renameTimer = null;
+    function rowHTML(p){
+      const editable = p.key.indexOf('cu_') === 0;
+      return `<div class="prep-item" data-prep="${p.key}" role="checkbox" aria-checked="false" tabindex="0">
+        <span class="prep-cb"></span>
+        <span class="prep-ic">${p.ic || '🔹'}</span>
+        <span class="prep-tx"${editable ? ' contenteditable="plaintext-only" spellcheck="false" data-edit-key="' + p.key + '"' : ''}>${p.tx}${p.sub ? '<span class="prep-tx-sub">' + p.sub + '</span>' : ''}</span>
+        <button class="prep-del" data-del-key="${p.key}" type="button" title="删除此项" aria-label="删除 ${p.tx}">❌</button>
+      </div>`;
+    }
+    function renderList(){
+      list.innerHTML = plist.map(rowHTML).join('') +
+        `<button class="prep-add" type="button" title="添加新的清单项">➕ 添加清单项</button>`;
+    }
+    function addItem(){
+      const key = 'cu_' + Date.now();
+      plist.push({key, ic:'🔹', tx:'新清单项', sub:''});
+      updatedAt = Date.now();
+      saveLocal(); renderList(); applyState(false); push();
+      const el = list.querySelector(`.prep-tx[data-edit-key="${key}"]`);
+      if(el){ try{ el.focus(); document.execCommand('selectAll', false, null); }catch(e){} }
+    }
+    function delItem(key){
+      if(plist.length <= 1){ showToast('⚠️ 至少保留一个清单项'); return; }
+      plist = plist.filter(p=>p.key!==key);
+      delete state[key];
+      updatedAt = Date.now();
+      saveLocal(); renderList(); applyState(true); push();
+    }
 
     let pctTimer = null;
     // 数字从 from→to 平滑滚动，与进度条宽度过渡同步
@@ -2017,8 +2061,10 @@
     }
 
     function render(animate){
-      const done = items.filter(it=> state[it.dataset.prep]).length;
-      const percent = Math.round(done / total * 100);
+      const its = currentItems();
+      const total = its.length;
+      const done = its.filter(it=> state[it.dataset.prep]).length;
+      const percent = total ? Math.round(done / total * 100) : 0;
       const prev = parseInt(pct.textContent) || 0;
       fill.style.width = percent + '%';
       if(animate) animateNumber(prev, percent); else pct.textContent = percent + '%';
@@ -2054,7 +2100,7 @@
 
     // 把 state 应用到所有勾选框（用于云端拉取覆盖）
     function applyState(animate){
-      items.forEach(it=>{
+      currentItems().forEach(it=>{
         const on = !!state[it.dataset.prep];
         it.classList.toggle('checked', on);
         it.setAttribute('aria-checked', on ? 'true' : 'false');
@@ -2078,9 +2124,11 @@
         const d = JSON.parse(txt);
         if(d && typeof d.updatedAt === 'number' && d.updatedAt > updatedAt){
           state = (d.items && typeof d.items === 'object') ? d.items : {};
+          if(Array.isArray(d.list) && d.list.length) plist = d.list;   // v2：清单条目本身也同步（增删跨端一致）
           updatedAt = d.updatedAt;
           if(purgeState()) push();   // 剔除失效 key 后回写云端，保持跨端干净
           saveLocal();
+          renderList();
           applyState(true);
         }
         setSync('☁️ 已同步', 'ok');
@@ -2092,7 +2140,8 @@
       if(isLocalFile){ setSync('📂 本地模式', 'local'); return; }
       setSync('🔄 同步中…', 'busy');
       try{
-        const payload = encodeURIComponent(JSON.stringify({v:1, items:state, updatedAt}));
+        // 双重编码：textdb 服务端会做两次查询解码，单次编码会把 + 吞成空格（实测）
+        const payload = encodeURIComponent(encodeURIComponent(JSON.stringify({v:2, items:state, list:plist, updatedAt})));
         const r = await fetch(API_SET + payload, {cache:'no-store'});
         if(!r.ok) throw 0;
         const res = await r.json();
@@ -2112,9 +2161,39 @@
       push();          // 后台上云
     }
 
-    items.forEach(it=>{
-      it.addEventListener('click', ()=> toggle(it));
-      it.addEventListener('keydown', (e)=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(it); } });
+    /* 事件委托：点击行=勾选；❌=删除；➕=添加；自定义标题改名不触发勾选 */
+    list.addEventListener('click', (e)=>{
+      const del = e.target.closest('.prep-del');
+      if(del){ delItem(del.dataset.delKey); return; }
+      if(e.target.closest('.prep-add')){ addItem(); return; }
+      if(e.target.closest('[contenteditable]')) return;   // 改名中，不勾选
+      const it = e.target.closest('.prep-item');
+      if(it) toggle(it);
+    });
+    list.addEventListener('keydown', (e)=>{
+      if(e.target.isContentEditable){
+        if(e.key === 'Enter'){ e.preventDefault(); e.target.blur(); }
+        return;
+      }
+      if(e.target.closest('.prep-del,.prep-add')) return;
+      const it = e.target.closest('.prep-item');
+      if(it && (e.key===' '||e.key==='Enter')){ e.preventDefault(); toggle(it); }
+    });
+    // 自定义项标题改名：输入→更新数据；停顿 600ms 后落本地并上云（不重渲染，避免打断输入）
+    list.addEventListener('input', (e)=>{
+      const ed = e.target.closest('.prep-tx[data-edit-key]');
+      if(!ed) return;
+      const p = plist.find(x=>x.key===ed.dataset.editKey);
+      if(!p) return;
+      p.tx = ed.textContent.trim().slice(0, 20) || '新清单项';
+      clearTimeout(renameTimer);
+      renameTimer = setTimeout(()=>{ updatedAt = Date.now(); saveLocal(); push(); }, 600);
+    });
+    list.addEventListener('focusout', (e)=>{
+      const ed = e.target.closest && e.target.closest('.prep-tx[data-edit-key]');
+      if(!ed) return;
+      const p = plist.find(x=>x.key===ed.dataset.editKey);
+      if(p && ed.textContent.trim()==='') ed.textContent = p.tx;   // 空名回退
     });
     if(tg){
       tg.addEventListener('click', (e)=>{
@@ -2135,13 +2214,16 @@
       });
     }
 
-    // 首帧：先渲染本地状态（不跳数字），下一帧再触发进度条宽度过渡动画
+    // 首帧：先渲染动态清单与本地状态（不跳数字），下一帧再触发进度条宽度过渡动画
+    renderList();
     applyState(false);
-    const initDone = items.filter(it=> state[it.dataset.prep]).length;
+    const its0 = currentItems();
+    const initDone = its0.filter(it=> state[it.dataset.prep]).length;
+    const initPct = its0.length ? Math.round(initDone/its0.length*100) : 0;
     fill.style.width = '0%';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      fill.style.width = Math.round(initDone/total*100) + '%';
-      if(initDone>0) animateNumber(0, Math.round(initDone/total*100));
+      fill.style.width = initPct + '%';
+      if(initDone>0) animateNumber(0, initPct);
     }));
 
     // 云端首拉 + 每 3 秒轮询，实现跨设备/跨人实时同步
