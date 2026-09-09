@@ -475,6 +475,9 @@
 
   /* ===== 天气信息 ===== */
   .ov-weather{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px;}
+  /* 清单 100% 后天气区置顶的入场动画（仅该区块自身，不影响其他内容） */
+  .ov-sec.wx-pop{animation:wxTop .6s cubic-bezier(.22,1,.36,1) both;}
+  @keyframes wxTop{from{opacity:0; transform:translateY(-10px) scale(.985);} to{opacity:1; transform:none;}}
   .w-card{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
   .w-city{font-weight:800; font-size:14px; color:var(--ink); margin-bottom:4px;}
   .w-icon{font-size:32px; line-height:1; margin:4px 0;}
@@ -1554,7 +1557,7 @@
       <div class="ov-sec"><div class="ov-sec-t">💰 费用明细清单 <small style="font-size:11px;color:var(--sub);font-weight:500">金额可自行修改，合计实时计算</small> <small id="expSync" class="exp-sync busy">☁️ 连接中…</small></div>
         <div class="exp" id="expList"></div></div>
       <div class="ov-sec"><div class="ov-sec-t">📅 旅行规划信息</div><div class="ov-plan">${plan}</div></div>
-      <div class="ov-sec"><div class="ov-sec-t">🌤️ 各地天气情况 <small id="wxSync" class="wx-sync busy">📡 获取实时天气…</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
+      <div class="ov-sec" id="ovWeatherSec"><div class="ov-sec-t">🌤️ 各地天气情况 <small id="wxSync" class="wx-sync busy">📡 获取实时天气…</small></div><div class="ov-weather">${weatherHtml}</div></div>`;
     initGalleries(ov);
     initPrepChecklist(ov, prepItems);
     initExpenseList(ov);
@@ -2060,6 +2063,27 @@
       pctTimer = requestAnimationFrame(step);
     }
 
+    /* 天气卡片置顶：清单完成度达 100% 时，把「各地天气情况」区块动态移到总览最上方；
+     * 进度回落 <100% 时还原到原位（wxAnchor 记录原位后继节点）。仅调整 DOM 顺序，
+     * 其余区块顺序、内容与样式完全不变。 */
+    const wxSec = root.querySelector('#ovWeatherSec');
+    const wxAnchor = wxSec ? wxSec.nextElementSibling : null;   // 原位后继节点（还原锚点）
+    let wxOnTop = false;
+    function updateWeatherPos(percent, animate){
+      if(!wxSec || !wxSec.parentNode) return;
+      if(percent === 100 && !wxOnTop){
+        wxOnTop = true;
+        const parent = wxSec.parentNode;
+        if(animate){ wxSec.classList.add('wx-pop'); setTimeout(()=>wxSec.classList.remove('wx-pop'), 700); }
+        parent.insertBefore(wxSec, parent.firstChild);
+      }else if(percent !== 100 && wxOnTop){
+        wxOnTop = false;
+        const parent = wxSec.parentNode;
+        if(wxAnchor && wxAnchor.parentNode === parent) parent.insertBefore(wxSec, wxAnchor);
+        else parent.appendChild(wxSec);
+      }
+    }
+
     function render(animate){
       const its = currentItems();
       const total = its.length;
@@ -2096,6 +2120,7 @@
         }
         wasDone100 = (percent === 100);
       }
+      updateWeatherPos(percent, !!animate);   // 100% → 天气区置顶；<100% → 还原原位
     }
 
     // 把 state 应用到所有勾选框（用于云端拉取覆盖）
