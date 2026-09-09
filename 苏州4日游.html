@@ -2072,10 +2072,25 @@
     function updateWeatherPos(percent, animate){
       if(!wxSec || !wxSec.parentNode) return;
       if(percent === 100 && !wxOnTop){
-        wxOnTop = true;
         const parent = wxSec.parentNode;
-        if(animate){ wxSec.classList.add('wx-pop'); setTimeout(()=>wxSec.classList.remove('wx-pop'), 700); }
         parent.insertBefore(wxSec, parent.firstChild);
+        /* 竖屏/单列约束护栏：天气区不得高于地图顶部，必须位于地图下方或与之平齐。
+         * 用 offsetTop 链取文档坐标（不受 wx-pop transform 动画影响）；若移动后
+         * 与地图区域水平重叠且越过地图底部（异常布局情形），立即还原原位。
+         * 桌面双栏布局地图在右侧、无水平重叠，护栏自动跳过，置顶行为不受影响。 */
+        const mapEl = document.getElementById('map');
+        if(mapEl){
+          const docTop = el=>{ let t=0, n=el; while(n){ t+=n.offsetTop; n=n.offsetParent; } return t; };
+          const wr = wxSec.getBoundingClientRect(), mr = mapEl.getBoundingClientRect();
+          const hOverlap = (wr.left < mr.right - 8) && (wr.right > mr.left + 8);
+          if(hOverlap && docTop(wxSec) < docTop(mapEl) + mapEl.offsetHeight - 1){
+            if(wxAnchor && wxAnchor.parentNode === parent) parent.insertBefore(wxSec, wxAnchor);
+            else parent.appendChild(wxSec);
+            return;
+          }
+        }
+        wxOnTop = true;
+        if(animate){ wxSec.classList.add('wx-pop'); setTimeout(()=>wxSec.classList.remove('wx-pop'), 700); }
       }else if(percent !== 100 && wxOnTop){
         wxOnTop = false;
         const parent = wxSec.parentNode;
