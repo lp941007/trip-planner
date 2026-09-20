@@ -1449,7 +1449,7 @@
       aroundTitle:'🚶 周边配套（步行 / 地铁可达）',
       around:[
         '<b>木渎古镇</b>（DAY2）：严家花园、虹饮山房、古松园，步行约 5min',
-        '<b>古城园林</b>（DAY3）：打车约 40min（地铁 5 号线→2/4 号线约 50min，优先打车）',
+        '<b>古城园林</b>（DAY4）：打车约 40min（地铁 5 号线→2/4 号线约 50min，优先打车）',
         '<b>上海南</b>（返程）：返程 C3008 到上海南站，转赴浦东 T1（地铁约 1h15min 或打车约 40min）'
       ],
       rooms:{ name:'扇衾家庭套房', tag:'3 人 · 2 晚', price:'3 人 2 晚合计 <b>¥1870</b>（含双早，可住 3–4 人）' }
@@ -1505,7 +1505,7 @@
       </div>`).join('');
     const weatherHtml = [
       {k:'sh', city:'上海虹桥', icon:'🌙', temp:'23°C', range:'18~27°C', desc:'9/26 傍晚抵达，多云转阴，微风。夜间气温约 20°C，出站穿薄外套即可。', tip:'机场→酒店步行 10min，无需打伞'},
-      {k:'sz', city:'苏州 / 木渎', icon:'⛅', temp:'25°C', range:'19~29°C', desc:'9/27–28 白天多云间晴，午后偶有短时阵雨（江南秋典型）。体感舒适，适合古镇漫步与园林游览。', tip:'带把折叠伞，防晒+防阵雨'},
+      {k:'sz', city:'苏州 / 木渎', icon:'⛅', temp:'25°C', range:'19~29°C', desc:'9/27 与 9/29 白天多云间晴，午后偶有短时阵雨（江南秋典型）。体感舒适，适合虎丘 / 木渎古镇漫步与园林游览。', tip:'带把折叠伞，防晒+防阵雨'},
       {k:'zz', city:'周庄', icon:'🌤️', temp:'24°C', range:'19~28°C', desc:'9/28 上午多云，水乡晨雾散后光线柔和，摇橹船体验最佳。午后转阴不影响游程。', tip:'清晨水乡有雾，拍照更有氛围'},
       {k:'ty', city:'太原 / 榆次', icon:'🌤️', temp:'19°C', range:'12~24°C', desc:'9/26 出发及 9/29 返程：北方秋季干燥晴朗，昼夜温差大。白天单衣够、早晚需加外套。', tip:'出发/返回备一件薄外套'}
     ].map(w=>`<div class="w-card" data-wx="${w.k}">
@@ -2310,7 +2310,7 @@
     for(const p of (day.pois||[])){ const s = NAME2SLUG[p.name]; if(s && POI_IMAGES[s] && POI_IMAGES[s][0]) return POI_IMAGES[s][0]; }
     return firstImgOf(fallbackSlug);
   }
-  const DAY_FALLBACK = {1:'hongqiao', 2:'mudu', 3:'zhuozheng', 4:'zhouzhuang'};
+  const DAY_FALLBACK = {1:'hongqiao', 2:'mudu', 3:'zhouzhuang', 4:'zhuozheng'};
 
   function buildBookPagesHTML(){
     const pages = [];
