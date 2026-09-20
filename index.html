@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="zh-CN" data-page-node-id="pa8EN2lPlzcjXA4Ar2TGHW">
+<head data-page-node-id="IqaOsmbGCKHgzkDU7qyhVf">
+<meta charset="UTF-8" data-page-node-id="ENVLe7QrLszGkvmbzAjSUl" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="HDpVjA4TFMk4MAnExP0FxM" />
 <title>苏州4日游</title>
-<link rel="stylesheet" href="leaflet/leaflet.css" />
+<link rel="stylesheet" href="leaflet/leaflet.css" data-page-node-id="JzC3hSA8JerqJX5KsxQJt8" />
 <style>
   :root{
     /* —— 主调色：东方诗意 · 蓝青为主、暖朱点睛，四类语义各司其职 —— */
@@ -854,85 +854,85 @@
   }
 </style>
 </head>
-<body>
+<body data-page-node-id="wVlnITWEPi4ptjPdoucFsu">
 
-  <div class="topbar" id="topbar">
-  <header class="banner">
-    <div class="badges" id="badges"></div>
-    <h1>苏州 · 4 日深度游</h1>
-    <div class="sub">江南水乡 · 园林古城 · 榆次出发 · 9/26–9/29</div>
-    <div class="budget-bar" id="budgetBar"></div>
-    <button class="share-btn" id="copyLink" type="button">📋 复制分享链接</button>
+  <div class="topbar" id="topbar" data-page-node-id="2hdUGToMWiDABaDH9s0Gxs">
+  <header class="banner" data-page-node-id="jKeX43TG83edNBYF8uCyx8">
+    <div class="badges" id="badges" data-page-node-id="IUxlHwkNFdn6fDVdCVKpIZ"></div>
+    <h1 data-page-node-id="ugtT3f8aITnGM3NYiJLfiw">苏州 · 4 日深度游</h1>
+    <div class="sub" data-page-node-id="fGJX4dYlGtJACNBf7mY7oj">江南水乡 · 园林古城 · 榆次出发 · 9/26–9/29</div>
+    <div class="budget-bar" id="budgetBar" data-page-node-id="XGnpedYIiLk8IqWEzYEZ3A"></div>
+    <button class="share-btn" id="copyLink" type="button" data-page-node-id="DFA1bD2IqDUpYJ6z4dZAXT">📋 复制分享链接</button>
   </header>
 
-  <nav class="tabs" id="tabs"></nav>
+  <nav class="tabs" id="tabs" data-page-node-id="v3Ms3nWGU2ueleq2l99cpl"></nav>
   </div>
 
-  <div class="wrap">
-    <section class="left">
-      <div id="overview" class="page"></div>
+  <div class="wrap" data-page-node-id="UR1c910C9clwYtwIdDJVAD">
+    <section class="left" data-page-node-id="jp2AJx89Kh3HqPGYxaOecv">
+      <div id="overview" class="page" data-page-node-id="YuzYUiwO1ryw7VPYtjpqOK"></div>
 
-      <div id="dayView" class="page">
-        <div id="flightSlot"></div>
-        <div class="dayhead">
-          <span class="n" id="dayN">DAY 1</span>
-          <span class="t" id="dayT"></span>
+      <div id="dayView" class="page" data-page-node-id="ejPe627Irx8V0yfxJrIZ1D">
+        <div id="flightSlot" data-page-node-id="FkdJ4cHQYsbYcuvEtjQCTa"></div>
+        <div class="dayhead" data-page-node-id="Z4MCsUF2EWXSSfjGHYnChq">
+          <span class="n" id="dayN" data-page-node-id="eAEribjwlMN9mGZoB1IhWS">DAY 1</span>
+          <span class="t" id="dayT" data-page-node-id="2QYZsI1EzxyPE8Jma84D9K"></span>
         </div>
-        <div class="timeline" id="timeline"></div>
-        <div id="backupSlot"></div>
-        <div id="hotelSlot"></div>
+        <div class="timeline" id="timeline" data-page-node-id="yAe7y8EuNHBG6NPmELjVLj"></div>
+        <div id="backupSlot" data-page-node-id="dne3o0YNOBQexaFuvMbDxs"></div>
+        <div id="hotelSlot" data-page-node-id="YS0lkVfSKbp5VSlZcVkEya"></div>
       </div>
     </section>
-    <section class="right">
-      <div id="map"></div>
-      <div class="map-hint">👆 点行程卡片，地图定位该点</div>
-      <div class="map-title" id="mapTitle"></div>
-      <div class="map-legend" id="mapLegend">
-        <span class="lg" data-cat="景点" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--blue)"></i>景点</span>
-        <span class="lg" data-cat="美食" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--food)"></i>美食</span>
-        <span class="lg" data-cat="文化" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--culture)"></i>文化</span>
-        <span class="lg" data-cat="购物" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--shop)"></i>购物</span>
-        <span class="lg" data-cat="交通" role="button" tabindex="0" aria-pressed="true"><i style="background:var(--traffic)"></i>交通</span>
-        <span class="map-count" id="mapCount">已显示全部</span>
-        <button class="map-me" id="mapMe" type="button" title="定位到我的当前位置" aria-label="定位到我的当前位置">📍 定位我</button>
+    <section class="right" data-page-node-id="UFwQ9GEDroeX5KmJySwlKD">
+      <div id="map" data-page-node-id="eRm6NUdPXPAX7LfcxMAGUm"></div>
+      <div class="map-hint" data-page-node-id="dwv1BvzvOBNcXwTaZR28WW">👆 点行程卡片，地图定位该点</div>
+      <div class="map-title" id="mapTitle" data-page-node-id="n28W1ieOD6pFQnSV6DTicv"></div>
+      <div class="map-legend" id="mapLegend" data-page-node-id="DnSuuUtshSut9FDW51rAcm">
+        <span class="lg" data-cat="景点" role="button" tabindex="0" aria-pressed="true" data-page-node-id="b5DBiGqX45jYI6s8MKrmFj"><i style="background:var(--blue)" data-page-node-id="tsEivDm9FMctsbljADx0g6"></i>景点</span>
+        <span class="lg" data-cat="美食" role="button" tabindex="0" aria-pressed="true" data-page-node-id="OYZUjo4knHCTbHDqTGAdyy"><i style="background:var(--food)" data-page-node-id="vh4OJGog9xpnednCcrZ3aO"></i>美食</span>
+        <span class="lg" data-cat="文化" role="button" tabindex="0" aria-pressed="true" data-page-node-id="GbHtxvPhPlD5kk9uUiJufy"><i style="background:var(--culture)" data-page-node-id="iSjdqLhMZjhjoGsCB3WGF9"></i>文化</span>
+        <span class="lg" data-cat="购物" role="button" tabindex="0" aria-pressed="true" data-page-node-id="ABcv4PuLQ5XAIwCkZwOIH3"><i style="background:var(--shop)" data-page-node-id="wN3ZxPKYTSsLnnawWybPyW"></i>购物</span>
+        <span class="lg" data-cat="交通" role="button" tabindex="0" aria-pressed="true" data-page-node-id="1B65raQsx4d8mHg72hiXpK"><i style="background:var(--traffic)" data-page-node-id="wjX2axxUF1YCNzgSKkUIxs"></i>交通</span>
+        <span class="map-count" id="mapCount" data-page-node-id="MtCfgRL40BPoRALAycOoF3">已显示全部</span>
+        <button class="map-me" id="mapMe" type="button" title="定位到我的当前位置" aria-label="定位到我的当前位置" data-page-node-id="rCbqquKJQmDBwF1rQ420jY">📍 定位我</button>
       </div>
     </section>
   </div>
 
   <!-- 行程路书入口 + 全屏浮层 -->
-  <button class="book-fab" id="bookFab" type="button" aria-label="打开行程路书"><span class="bf-ic">📖</span>行程路书</button>
-  <button class="to-top" id="toTop" type="button" aria-label="返回顶部">↑</button>
+  <button class="book-fab" id="bookFab" type="button" aria-label="打开行程路书" data-page-node-id="hdEywE6EkkZROFPKzQ8gzG"><span class="bf-ic" data-page-node-id="cPAF1ZD6wIFHDPIbm9bhfd">📖</span>行程路书</button>
+  <button class="to-top" id="toTop" type="button" aria-label="返回顶部" data-page-node-id="AwHIXD0sNpo8GPtr79Arql">↑</button>
 
   <!-- 路线导航面板（点击地图标记的「路线导航」后弹出） -->
-  <div class="route-backdrop" id="routeBackdrop"></div>
-  <div class="route-sheet" id="routeSheet" role="dialog" aria-label="路线导航" aria-modal="false">
-    <div class="route-head">
-      <span class="route-title">🧭 路线导航</span>
-      <button class="route-close" id="routeClose" type="button" aria-label="关闭">×</button>
+  <div class="route-backdrop" id="routeBackdrop" data-page-node-id="69rb07Scm1NoGOi1OtpJaA"></div>
+  <div class="route-sheet" id="routeSheet" role="dialog" aria-label="路线导航" aria-modal="false" data-page-node-id="wac5HMI98YtYQDG2HpKWA6">
+    <div class="route-head" data-page-node-id="qVRkpatm1trzUaLDkl7qpC">
+      <span class="route-title" data-page-node-id="1cmRkH0kqlafewRqsvJ9Ds">🧭 路线导航</span>
+      <button class="route-close" id="routeClose" type="button" aria-label="关闭" data-page-node-id="aJXpGMSsQ6f3fDP4Pf6PSQ">×</button>
     </div>
-    <div class="route-pts">
-      <div class="route-pt"><span class="rp-k">起点</span><select class="route-start" id="routeStart"></select></div>
-      <div class="route-arrow">↓</div>
-      <div class="route-pt"><span class="rp-k">终点</span><span class="route-end" id="routeEnd">—</span></div>
+    <div class="route-pts" data-page-node-id="RM07NBHJxayzHSiBhusumB">
+      <div class="route-pt" data-page-node-id="MR0qdSTT0LgO3K4RMycar0"><span class="rp-k" data-page-node-id="LNmFhgqBH63pUuhr9mmk4D">起点</span><select class="route-start" id="routeStart" data-page-node-id="psmmhFTa6mo2UtcmG4AZ0Z"></select></div>
+      <div class="route-arrow" data-page-node-id="5oEFrlL8D8TbGHA45N9XWI">↓</div>
+      <div class="route-pt" data-page-node-id="LQJIWNUyOTBsfCMlHtqTFW"><span class="rp-k" data-page-node-id="cx4kuEhbLy075V0Tu4WeMF">终点</span><span class="route-end" id="routeEnd" data-page-node-id="bG2i7gLnTzUCJXHB9kO2kp">—</span></div>
     </div>
-    <div class="route-stat" id="routeStat"></div>
-    <div class="route-modes" id="routeModes"></div>
-    <div class="route-actions">
-      <a class="route-btn primary" id="routeBaidu" href="#" target="_blank" rel="noopener">在百度地图导航</a>
-      <a class="route-btn ghost" id="routeTmap" href="#" target="_blank" rel="noopener">腾讯地图</a>
-      <a class="route-btn ghost" id="routeAmap" href="#" target="_blank" rel="noopener">高德地图</a>
-      <button class="route-btn ghost" id="routeCopy" type="button">复制链接</button>
+    <div class="route-stat" id="routeStat" data-page-node-id="iPGJVaAtnRbcj1RVPLQ35h"></div>
+    <div class="route-modes" id="routeModes" data-page-node-id="YPCJ7DoLU2njUMw9i4ogz7"></div>
+    <div class="route-actions" data-page-node-id="u1zG5NPsxwvljrHi6p7BqC">
+      <a class="route-btn primary" id="routeBaidu" href="#" target="_blank" rel="noopener" data-page-node-id="GUvOFsrIltc78rQz5ONPti">在百度地图导航</a>
+      <a class="route-btn ghost" id="routeTmap" href="#" target="_blank" rel="noopener" data-page-node-id="JFbe533rmN1LLjsmabXEIO">腾讯地图</a>
+      <a class="route-btn ghost" id="routeAmap" href="#" target="_blank" rel="noopener" data-page-node-id="jGXWipIXZ4dGhDHUrRul1U">高德地图</a>
+      <button class="route-btn ghost" id="routeCopy" type="button" data-page-node-id="tBuaa3LT1sHC66vn8C2RNm">复制链接</button>
     </div>
-    <div class="route-note">距离为直线估算（实际道路通常更长）。点击「在百度地图导航」可在手机 / 电脑地图 App 中获取实时路线与转弯指引。</div>
+    <div class="route-note" data-page-node-id="BWK00ckvKQZg7wgERSu3WE">距离为直线估算（实际道路通常更长）。点击「在百度地图导航」可在手机 / 电脑地图 App 中获取实时路线与转弯指引。</div>
   </div>
-  <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游行程路书">
-    <div class="book-stage">
-      <div class="book-title-bar">📖 苏州 4 日游 · 行程路书</div>
-      <button class="book-close" id="bookClose" type="button" aria-label="关闭">×</button>
-      <button class="book-nav book-prev" id="bookPrev" type="button" aria-label="上一页">‹</button>
-      <div id="flipBook"></div>
-      <button class="book-nav book-next" id="bookNext" type="button" aria-label="下一页">›</button>
-      <div class="book-hint">拖动书页一角，或点两侧箭头翻页 · Esc 关闭</div>
+  <div class="book-overlay" id="bookOverlay" role="dialog" aria-modal="true" aria-label="苏州4日游行程路书" data-page-node-id="BR9x6FKI3FwukT96Ic5FVB">
+    <div class="book-stage" data-page-node-id="rV1qFHDgO7pJh0vl75pQEJ">
+      <div class="book-title-bar" data-page-node-id="g9C0XUF4QfFK9C5wRIOHmg">📖 苏州 4 日游 · 行程路书</div>
+      <button class="book-close" id="bookClose" type="button" aria-label="关闭" data-page-node-id="UHRv52H12NMhPLXqVTf6Zc">×</button>
+      <button class="book-nav book-prev" id="bookPrev" type="button" aria-label="上一页" data-page-node-id="PhHGj47fNN5RLWskhjUnkp">‹</button>
+      <div id="flipBook" data-page-node-id="rmwozclDV6feI2YtFvj5pZ"></div>
+      <button class="book-nav book-next" id="bookNext" type="button" aria-label="下一页" data-page-node-id="GMjeJ1h6iDEMr2T0uV0NZk">›</button>
+      <div class="book-hint" data-page-node-id="gU2aCG9QAuXRZdV9IlRDHK">拖动书页一角，或点两侧箭头翻页 · Esc 关闭</div>
     </div>
   </div>
 
@@ -988,43 +988,37 @@
         desc:'太湖东岸古镇，司徒庙古柏、香雪海秋桂，渔港渔船点点，吃一顿太湖三白最新鲜。',
         meta:{'特色':'太湖、秋桂','车程':'木渎约30min'}, info:'光福位于太湖东岸，距木渎约 30min。司徒庙“清、奇、古、怪”四株古柏千年依旧，秋日香雪海桂花满山（也以早春梅花闻名）；渔港码头可看太湖渔船、吃现捞太湖三白。是木渎周边最贴近太湖的轻松备选。'}
     ]},
-    { id:3, date:'9/28', wd:'周一', theme:'古典园林 · 苏博 · 评弹夜（木渎基点自驾）', plan:'木渎自驾→<b>拙政园</b> → 苏博 → <b>留园</b>（与拙政园并称“苏州双园”，对比两种造园美学）→ 平江路（<b>鑫震源生煎</b>配<b>苏式绿豆汤</b>下午茶）→ 夜晚听 <b>苏州评弹</b>，自驾返木渎。', flight:'', pois:[
-      {t:'09:00', cat:'文化', name:'拙政园', lng:120.6330, lat:31.3260,
-        desc:'中国四大名园之首，明代江南园林典范。远香堂、小飞虹、留听阁移步换景，沿回廊慢慢走、不赶场。',
-        meta:{'门票':'含虎丘套票¥135','自驾':'木渎≈40min','建议':'2–3h'}, img:'', info:'拙政园是苏州园林的代表作、世界文化遗产，开放约 7:30–17:30，拙政园+虎丘套票 ¥135/人（含两景区门票）。从木渎悦华自驾约 40min（走苏福快速→干将西路，早高峰略堵，建议 08:30 前出发），停拙政园 / 北寺塔周边停车场（约 ¥10–15/次）；建议早上开门即入，人少光影好，必看远香堂、小飞虹、留听阁与借景北寺塔。穿汉服拍照极出片，顺路可逛隔壁的苏州博物馆。'},
-      {t:'11:00', cat:'文化', name:'苏州博物馆', lng:120.6360, lat:31.3250,
-        desc:'贝聿铭封笔之作，粉墙黛瓦的几何诗意。免费但需预约，馆藏秘色瓷、真珠舍利宝幢值得细看。',
-        meta:{'门票':'免费(需预约)','贴士':'提前公众号预约'}, img:'', info:'苏州博物馆（本馆）由贝聿铭设计，免费开放（周一闭馆，节假日除外），需提前在“苏州博物馆”公众号预约分时段入馆。必看秘色瓷莲花碗、真珠舍利宝幢、吴门书画，建筑本身即是展品——片石假山、光影庭院随手出片。馆内请勿使用闪光灯。'},
-      {t:'13:30', cat:'文化', name:'留园', lng:120.5880, lat:31.3180,
-        desc:'中国四大名园之一，与拙政园并称“苏州双园”。以“咫尺之内再造乾坤”的厅堂、奇石、回廊著称，慢逛漏窗、冠云峰，体会园主闲情。',
-        meta:{'门票':'¥55','贴士':'与拙政园齐名'}, img:'', info:'留园与拙政园、颐和园、承德避暑山庄并称中国四大名园，开放约 7:30–17:30，门票约 ¥55。以建筑空间取胜——涵碧山房、明瑟楼、冠云峰（江南名石）与层层漏窗移步换景。从苏博自驾约 15min、停车方便，建议游玩 1.5–2 小时；它是上午拙政园之后第二座顶级园林，对比拙政园"山水写意"与留园"建筑空间"两种造园美学，最见功力。'},
+    { id:3, date:'9/28', wd:'周一', theme:'周庄水乡 · 平江路评弹夜（木渎基点自驾）', plan:'木渎自驾→<b>周庄</b>（约 56min）漫游双桥、沈厅、摇橹船，万三蹄午餐；傍晚驱车至<b>平江路</b>水巷慢步、鑫震源生煎配苏式绿豆汤下午茶，夜听<b>苏州评弹</b>，自驾返木渎。', flight:'', pois:[
+      {t:'09:00', cat:'景点', name:'周庄古镇', lng:120.8510, lat:31.1120,
+        desc:'中国第一水乡，双桥、沈厅、张厅沿水铺开。木渎悦华出发自驾约 56min（47km，苏福快速→友新→江陵快速→周湖线，过路费约 ¥25）到周庄，先到【游客服务中心】寄存行李，再轻装坐摇橹船、漫游水巷。',
+        meta:{'门票':'¥80（联票）','推荐':'双桥、摇橹船','寄存':'游客服务中心','自驾':'木渎≈56min'}, img:'', info:'周庄位于苏州东南约 38km，9/28 早上从木渎悦华自驾约 56min（47km，走苏福快速→友新快速→江陵快速→周湖线，过路费约 ¥25）到周庄。到镇口【游客服务中心】免费寄存行李（凭门票 / 身份证），停好车轻装游双桥、沈厅、张厅，坐摇橹船（¥80–120/船）看水上明清老宅，午后在临河茶馆点碧螺春。开放约 7:30–21:00，联票 ¥80，景区停车场约 ¥20/次。当晚返回木渎住宿，行李无需带走。'},
+      {t:'12:30', cat:'美食', name:'周庄 · 万三蹄与阿婆茶', lng:120.8490, lat:31.1100,
+        desc:'坐在临水老宅尝周庄招牌——万三蹄（沈万三蹄膀，酱红酥烂、肥而不腻），配一盅阿婆茶、咬一口青团，水乡午饭最有味道。',
+        meta:{'招牌':'万三蹄、阿婆茶','人均':'¥60–100','贴士':'临河餐馆'}, img:'', info:'周庄美食以“万三蹄”最出名——相传沈万三待客的酱蹄膀，浓油赤酱、皮糯肉酥，可整只也可切块；配阿婆茶（当地待客的三道茶之一）、青团、撑腰糕等水乡点心。镇内沿河餐馆（如沈厅酒家、古镇饭店）人均约 ¥60–100，坐在临水窗边边吃边看摇橹船经过，是 DAY3 独有的水乡味觉记忆。'},
       {t:'15:30', cat:'景点', name:'平江路 · 水巷慢步', lng:120.6320, lat:31.3180,
-        desc:'苏州保存最完整的老城水巷，白墙黛瓦、小桥流水。沿河慢慢走，逛逛文艺小店、吃碗糖粥，不赶场。',
-        meta:{'门票':'免费','推荐':'文艺小店、糖粥'}, img:'', info:'平江路是苏州古城保存最好的历史街区，与河水平行的步道两旁是白墙黛瓦的老宅与文艺小店。可乘手摇船（约 ¥150/船），也可纯步行发呆。推荐鸡脚旮旯、桃花源记，傍晚灯笼亮起最有味道。从留园自驾约 15min 达，建议傍晚慢逛 1–1.5 小时。'},
+        desc:'苏州保存最完整的老城水巷，白墙黛瓦、小桥流水。傍晚从周庄驱车约 1h 抵达，沿河慢慢走，逛逛文艺小店、吃碗糖粥，不赶场。',
+        meta:{'门票':'免费','推荐':'文艺小店、糖粥'}, img:'', info:'平江路是苏州古城保存最好的历史街区，与河水平行的步道两旁是白墙黛瓦的老宅与文艺小店。可乘手摇船（约 ¥150/船），也可纯步行发呆。推荐鸡脚旮旯、桃花源记，傍晚灯笼亮起最有味道。从周庄自驾约 1h 达，傍晚慢逛 1–1.5 小时，衔接晚间评弹。'},
       {t:'17:00', cat:'美食', name:'下午茶 · 鑫震源生煎 + 苏式绿豆汤', lng:120.6280, lat:31.3160,
-        desc:'逛完园林古刹，来份苏州人气生煎——底脆、皮薄、汤多，一口一个；再端一碗苏式绿豆汤（糯米饭 + 绿豆 + 薄荷凉糖水），一咸一甜，最熨帖的江南下午茶。',
-        meta:{'招牌':'生煎、绿豆汤','人均':'¥20–40','贴士':'趁热吃'}, img:'', info:'鑫震源是苏州本地知名生煎连锁，招牌生煎馒头底部金黄焦脆、内里汤汁饱满，蟹粉小笼、虾仁小笼也很受欢迎，人均约 ¥20–30；隔壁端一碗苏式绿豆汤（煮糯米饭 + 绿豆 + 红绿丝 + 蜜枣，浇薄荷糖水，与北方纯绿豆汤截然不同），咸甜搭配，是园林古刹之后最解乏的下午茶。平江路漫步途中随手来一份，不必赶场。'},
+        desc:'逛完水巷，来份苏州人气生煎——底脆、皮薄、汤多，一口一个；再端一碗苏式绿豆汤（糯米饭 + 绿豆 + 薄荷凉糖水），一咸一甜，最熨帖的江南下午茶。',
+        meta:{'招牌':'生煎、绿豆汤','人均':'¥20–40','贴士':'趁热吃'}, img:'', info:'鑫震源是苏州本地知名生煎连锁，招牌生煎馒头底部金黄焦脆、内里汤汁饱满，蟹粉小笼、虾仁小笼也很受欢迎，人均约 ¥20–30；隔壁端一碗苏式绿豆汤（煮糯米饭 + 绿豆 + 红绿丝 + 蜜枣，浇薄荷糖水，与北方纯绿豆汤截然不同），咸甜搭配，是水乡漫步之后最解乏的下午茶。平江路途中随手来一份，不必赶场。'},
       {t:'19:30', cat:'文化', name:'苏州评弹', lng:120.6300, lat:31.3170,
         desc:'钻进平江路 / 山塘街的评弹书场，点一壶碧螺春，听一曲《珍珠塔》《枫桥夜泊》。吴侬软语、三弦琵琶，最江南的夜晚。',
         meta:{'推荐':'评弹书场、碧螺春','贴士':'傍晚场次更佳'}, img:'',         info:'苏州评弹是国家级非遗，用苏州方言演唱，三弦、琵琶伴奏。推荐去平江路上的「伏羲琴馆」「苏州评弹博物馆（中张家巷）」或山塘街书场，票价约 ¥30–80/人，下午 / 晚间均有场次（每场约 1 小时）。热门场次建议提前在「苏州评弹」公众号或美团订座。点壶茶静静听一曲，是慢游苏州最地道的收尾。'},
       {t:'20:30', cat:'交通', name:'夜归 · 返木渎悦华', lng:120.5167, lat:31.2505,
         desc:'评弹散场后自驾返回木渎悦华酒店（经干将西路→苏福快速，约 40min）。夜间城市道路通畅，自驾比打车更从容，酒店车位随时可停。',
-        meta:{'返程':'自驾','时长':'约40min','贴士':'导航回酒店'}, img:'', info:'平江路 / 山塘街距木渎悦华酒店约 12–15km，自驾经干将西路→苏福快速约 40min。夜间路况比白天好，自驾直达免等车、行李随手放车厢，从容回酒店养精蓄锐，为次日周庄之行做准备。'}
+        meta:{'返程':'自驾','时长':'约40min','贴士':'导航回酒店'}, img:'', info:'平江路 / 山塘街距木渎悦华酒店约 12–15km，自驾经干将西路→苏福快速约 40min。夜间路况比白天好，自驾直达免等车、行李随手放车厢，从容回酒店养精蓄锐，为次日园林 + 苏博 + 返程之行做准备。'}
     ],
     backup:[
-      {name:'网师园', cat:'文化', lng:120.6280, lat:31.3050,
-        desc:'苏州最小最精的园林，咫尺乾坤；夜间“网师园夜游”有昆曲评弹实景演出，极为惊艳。',
-        meta:{'特色':'精致园林、夜游','门票':'¥30–40'}, info:'网师园是苏州园林中面积最小却最见功力的一座，亭台水景紧凑雅致，距平江路不远。其“网师园夜游”为实景版昆曲 / 评弹演出（约 19:30 起，¥100 左右），在古园灯下听曲，是 DAY3 评弹之外的更高阶备选。白天门票约 ¥30–40。'},
-      {name:'寒山寺', cat:'文化', lng:120.5700, lat:31.2980,
-        desc:'“姑苏城外寒山寺，夜半钟声到客船”。枫桥边的诗意古刹，听一口唐钟、走一走枫桥、看古运河；若想换一种非园林的文化体验可替换留园。',
-        meta:{'特色':'诗意古刹','门票':'¥20','车程':'木渎约30min'}, info:'寒山寺因张继《枫桥夜泊》名扬天下，位于苏州城西枫桥镇，是江南名刹而非园林——黄墙殿宇、寒山钟、碑廊与古运河构成独特诗意，与古典园林形成鲜明反差。距木渎自驾约 30min，门票约 ¥20，建议游玩 1–1.5h，傍晚钟声最有味道。'},
-      {name:'金鸡湖 · 诚品书店', cat:'景点', lng:120.7350, lat:31.3250,
-        desc:'现代苏州的另一面——湖滨步道、摩天轮、音乐喷泉，以及诚品书店的文创与咖啡。',
-        meta:{'特色':'现代苏州、湖滨','车程':'木渎约35min'}, info:'金鸡湖是苏州工业园区的新名片，与古城园林形成反差：湖滨大道散步、看“东方之门”摩天楼、坐摩天轮、傍晚音乐喷泉。诚品书店（大陆首店）集书、文创、咖啡于一体，适合作为园林之外的现代休闲备选，距木渎打车约 35min。'}
+      {name:'锦溪古镇', cat:'文化', lng:120.9350, lat:31.1350,
+        desc:'距周庄仅约 8km 的“中国民间博物馆之乡”，古莲桥、陈妃水冢，比周庄更安静原味。',
+        meta:{'特色':'安静水乡、博物馆','车程':'周庄约15min'}, info:'锦溪距周庄仅约 8km，却安静许多，被称为“中国民间博物馆之乡”——古砖瓦博物馆、壶具馆散落水巷。古莲桥倒影、陈妃水冢、沿河茶馆皆宜慢坐。若周庄人多或时间充裕，锦溪是最近的优质备选（周庄打车约 15min）。'},
+      {name:'同里古镇', cat:'文化', lng:120.7300, lat:31.1550,
+        desc:'“醇正水乡”，退思园为世界文化遗产；三桥、珍珠塔、罗星洲，水网更密更幽。',
+        meta:{'特色':'世遗退思园','车程':'周庄约40min'}, info:'同里距周庄约 40min，是另一座完整保存的水乡，退思园为世界文化遗产（江南园林典范）。三桥、珍珠塔、罗星洲（湖中寺）各具意趣，水巷比周庄更密更幽。适合在周庄游毕、赴苏州南之前顺路延展的备选。'}
     ]},
-    { id:4, date:'9/29', wd:'周二', theme:'周庄水乡 · 苏州南站还车 · MU5220 返程', plan:'早上 <b>木渎退房</b> 自驾带行李赴周庄（约 56min），游客服务中心寄存后漫游水乡；16:50 <b>自驾还车</b> 苏州南站，<b>C3008 18:06 高铁</b>赴上海南，转赴浦东 T1 乘 <b>MU5220</b> 返程榆次。', flight:`<div class="flight">
-  <h3>✈ 返程交通 · 周庄水乡 → 苏州南 → 榆次 <span class="pick">9/29 周二</span></h3>
-  <div class="route">周庄 → 苏州南站 🚄 <b>C3008</b> → 上海南 🚇 → 浦东 T1 ✈ <b>MU5220</b> → 太原武宿 →（打车）→ 榆次</div>
+    { id:4, date:'9/29', wd:'周二', theme:'古典园林 · 苏州博物馆 · 苏州南还车 · MU5220 返程', plan:'早上 <b>木渎退房</b> 自驾带行李赴拙政园 / 苏州博物馆 / 留园（园林群紧邻，木渎出发约 40min），游毕 16:50 <b>自驾还车</b> 苏州南站，<b>C3008 18:06 高铁</b>赴上海南，转赴浦东 T1 乘 <b>MU5220</b> 返程榆次。', flight:`<div class="flight">
+  <h3>✈ 返程交通 · 园林苏博 → 苏州南 → 榆次 <span class="pick">9/29 周二</span></h3>
+  <div class="route">苏州园林 → 苏州南站 🚄 <b>C3008</b> → 上海南 🚇 → 浦东 T1 ✈ <b>MU5220</b> → 太原武宿 →（打车）→ 榆次</div>
   <div class="cmp">
     <div class="cmp-t">🎫 9/29 返程航班（中国东方航空 · 经济舱 · <b>3 人合计</b>，已含机建燃油费）</div>
     <div class="tax">机建燃油费 = 民航发展基金 ¥50 + 燃油附加费 ¥100（2026）= <b>¥150 / 人 / 单程</b>（3 人 = ¥450）。时刻为参考，以购票时为准。</div>
@@ -1034,19 +1028,22 @@
         <tr class="best"><td>MU5220</td><td>东航</td><td>上海浦东 T1 21:30 → 太原武宿 T2 23:55</td><td>¥2841</td><td>+¥450</td><td class="sum">¥3291</td></tr>
       </tbody>
     </table>
-    <div class="note">💡 <b>MU5220</b> 中国东方航空，上海浦东 T1 21:30 起飞、23:55 到太原武宿 T2（与去程同机场——去程落浦东 T1、返程也从浦东 T1 起，完美闭环）。9/29 早上木渎悦华退房、<b>自驾</b>带行李赴周庄（约 56min）并到【游客服务中心】寄存，轻装游水乡；约 16:50 从周庄<b>自驾赴苏州南站一嗨租车还车</b>（约 40min），乘 <b>C3008 高铁</b>到上海南（二等座约 ¥56/人、3 人 ¥168，车程约 25min，18:06 发车、18:31 到），转赴浦东 T1（地铁 1 号线→2 号线约 1h15min，或打车约 40min ¥150 左右，约 19:15 到），距 21:30 起飞还有约 2h15min，可在浦东附近吃晚饭 / 逛逛，从容候机。</div>
+    <div class="note">💡 <b>MU5220</b> 中国东方航空，上海浦东 T1 21:30 起飞、23:55 到太原武宿 T2（与去程同机场——去程落浦东 T1、返程也从浦东 T1 起，完美闭环）。9/29 早上木渎悦华退房、<b>自驾</b>带行李赴拙政园 / 苏州博物馆 / 留园（园林群紧邻，木渎出发约 40min），先游园林、后看苏博（9/29 周二开馆，避开 9/28 周一闭馆）；约 16:50 从留园片区<b>自驾赴苏州南站一嗨租车还车</b>（约 40min），乘 <b>C3008 高铁</b>到上海南（二等座约 ¥56/人、3 人 ¥168，车程约 25min，18:06 发车、18:31 到），转赴浦东 T1（地铁 1 号线→2 号线约 1h15min，或打车约 40min ¥150 左右，约 19:15 到），距 21:30 起飞还有约 2h15min，可在浦东附近吃晚饭 / 逛逛，从容候机。</div>
   </div>
-  <div class="arr">DAY4 早上木渎退房带行李赴周庄（寄存行李漫游水乡），午后从苏州南乘 C3008 高铁到上海南，转赴浦东 T1 乘 MU5220 返程（去程落浦东 T1、返程也从浦东 T1 起，同机场完美闭环）。</div>
+  <div class="arr">DAY4 早上木渎退房自驾赴拙政园、苏州博物馆、留园（园林群紧邻，木渎出发约 40min），午后从苏州南乘 C3008 高铁到上海南，转赴浦东 T1 乘 MU5220 返程（去程落浦东 T1、返程也从浦东 T1 起，同机场完美闭环）。</div>
 </div>`, pois:[
-      {t:'09:00', cat:'景点', name:'周庄古镇', lng:120.8510, lat:31.1120,
-        desc:'中国第一水乡，双桥、沈厅、张厅沿水铺开。早上木渎悦华退房、自驾带行李约 56min（47km，苏福快速→友新→江陵快速→周湖线，过路费约 ¥25）到周庄，先到【游客服务中心】寄存行李，再轻装坐摇橹船、漫游水巷。',
-        meta:{'门票':'¥80（联票）','推荐':'双桥、摇橹船','寄存':'游客服务中心','自驾':'木渎≈56min'}, img:'', info:'周庄位于苏州东南约 38km，9/29 早上木渎悦华退房后自驾约 56min（47km，走苏福快速→友新快速→江陵快速→周湖线，过路费约 ¥25）到周庄。到镇口【游客服务中心】免费寄存行李（凭门票 / 身份证），停好车轻装游双桥、沈厅、张厅，坐摇橹船（¥80–120/船）看水上明清老宅，午后在临河茶馆点碧螺春。开放约 7:30–21:00，联票 ¥80，景区停车场约 ¥20/次。'},
-      {t:'12:30', cat:'美食', name:'周庄 · 万三蹄与阿婆茶', lng:120.8490, lat:31.1100,
-        desc:'坐在临水老宅尝周庄招牌——万三蹄（沈万三蹄膀，酱红酥烂、肥而不腻），配一盅阿婆茶、咬一口青团，水乡午饭最有味道。',
-        meta:{'招牌':'万三蹄、阿婆茶','人均':'¥60–100','贴士':'临河餐馆'}, img:'', info:'周庄美食以“万三蹄”最出名——相传沈万三待客的酱蹄膀，浓油赤酱、皮糯肉酥，可整只也可切块；配阿婆茶（当地待客的三道茶之一）、青团、撑腰糕等水乡点心。镇内沿河餐馆（如沈厅酒家、古镇饭店）人均约 ¥60–100，坐在临水窗边边吃边看摇橹船经过，是 DAY4 独有的水乡味觉记忆。'},
-      {t:'16:50', cat:'交通', name:'周庄 · 自驾还车苏州南站', lng:120.6550, lat:31.0500,
-        desc:'游玩结束，自驾从周庄赴苏州南站一嗨租车还车（经周湖线→江陵快速→友新快速，约 40min、35km），先在游客服务中心取回行李，再还车，准备乘 C3008 18:06 高铁赴上海南。',
-        meta:{'方式':'自驾还车','时长':'约40min','贴士':'预留取行李+还车'}, img:'', info:'周庄距苏州南站（吴江区）约 35km，自驾经周湖线→江陵快速→友新快速约 40min。先在游客服务中心取回行李，再到一嗨租车苏州南站店还车（核对车况、结清费用，保留还车凭证）。苏州南站有直达上海南的高铁（C3008），是周庄返沪最顺的铁路口岸。'},
+      {t:'09:30', cat:'景点', name:'拙政园', lng:120.6270, lat:31.3290,
+        desc:'中国四大名园之首，以水为中心、亭台楼榭依水成景；远香堂、小飞虹、留听阁，移步换景。木渎悦华退房后自驾约 40min（走中环西线→北环高架）到，先游这座最大的古典园林。',
+        meta:{'门票':'¥70（旺季）','推荐':'远香堂、小飞虹','自驾':'木渎≈40min'}, img:'', info:'拙政园是苏州园林的代表、中国四大名园之首，占地约 5.2 公顷，以水景见长——远香堂临水、小飞虹廊桥倒影、留听阁借景北寺塔。9/29 早上木渎悦华退房、自驾约 40min 到（中环西线→北环高架），建议游玩 2–2.5h，开园即入避开团队客流。与苏州博物馆仅一墙之隔，游毕步行即达苏博。'},
+      {t:'11:30', cat:'文化', name:'苏州博物馆', lng:120.6360, lat:31.3250,
+        desc:'贝聿铭封山之作，粉墙黛瓦的几何苏式美学；秘色瓷、真珠舍利宝幢等国宝在馆。周二开馆（避开 9/28 周一闭馆），与拙政园一墙之隔，步行即达。',
+        meta:{'门票':'免费·需预约','预约':'官微提前订','开馆':'周二正常','贴士':'带身份证'}, img:'', info:'苏州博物馆（本馆）由贝聿铭设计，是现代主义与苏式粉墙黛瓦的完美融合，馆内藏秘色瓷莲花碗、真珠舍利宝幢等吴地国宝。原定 9/28 周一闭馆，故将苏博挪至 9/29 周二（开馆日）游览。与拙政园仅一墙之隔，步行约 5min。免费但需提前在「苏州博物馆」官微 / 官网预约（分时入馆），务必带身份证。建议游玩 1.5–2h。'},
+      {t:'14:00', cat:'景点', name:'留园', lng:120.5910, lat:31.3180,
+        desc:'中国四大名园之一，以“咫尺之内再造乾坤”的厅山冠绝江南；冠云峰、涵碧山房、闻木樨香轩，建筑空间极尽巧思。苏博游毕自驾约 15min 到。',
+        meta:{'门票':'¥55','推荐':'冠云峰、涵碧山房','自驾':'苏博≈15min'}, img:'', info:'留园与拙政园、颐和园、承德避暑山庄并称中国四大名园，以精妙的建筑空间序列著称——入口欲扬先抑，过厅至古木交柯、绿荫，豁然开朗见冠云峰（太湖石名峰）与涵碧山房。9/29 午后从苏博自驾约 15min 到，建议游玩 1.5h。门票约 ¥55。'},
+      {t:'16:50', cat:'交通', name:'留园片区 · 自驾还车苏州南站', lng:120.6550, lat:31.0500,
+        desc:'园林游毕，从留园片区自驾赴苏州南站一嗨租车还车（经西环高架→友新快速→江陵快速，约 40min），行李一直在车上，直接还车，准备乘 C3008 18:06 高铁赴上海南。',
+        meta:{'方式':'自驾还车','时长':'约40min','贴士':'预留还车时间'}, img:'', info:'留园距苏州南站（吴江区）约 35km，自驾经西环高架→友新快速→江陵快速约 40min。行李全程随车，游毕直接到一嗨租车苏州南站店还车（核对车况、结清费用，保留还车凭证）。苏州南站有直达上海南的高铁（C3008），是返沪最顺的铁路口岸。'},
       {t:'18:06', cat:'交通', name:'苏州南 → 上海南 · C3008', lng:120.6550, lat:31.0500,
         desc:'乘 C3008 从苏州南站到上海南，二等座约 ¥56/人、3 人 ¥168，车程约 25min（18:06 发车、18:31 到）。抵达上海南后转赴浦东 T1。',
         meta:{'高铁':'C3008 苏州南→上海南','二等座':'约¥56/人','3人':'¥168','时长':'约25min'}, img:'', info:'苏州南 → 上海南 C3008 高铁二等座约 ¥56/人，3 人 ¥168（单程）。车程约 25min（18:06 发车、18:31 到）。抵达上海南后转赴浦东 T1：地铁 1 号线→人民广场换 2 号线约 1h15min，或打车约 40min / ¥150 左右，约 19:15 到，距 MU5220 起飞还有约 2h15min，可在浦东附近吃晚饭 / 逛逛，从容候机。'},
@@ -1058,12 +1055,15 @@
         meta:{'到达':'TYN 武宿 T2','回榆次':'打车约25min'}, img:'', info:'太原武宿国际机场距榆次约 25 公里、打车 45–60 元 / 25 分钟。MU5220 约 23:55 落地，取行李后打车回榆次，结束苏州四日深度游。'}
     ],
     backup:[
-      {name:'锦溪古镇', cat:'文化', lng:120.9350, lat:31.1350,
-        desc:'距周庄仅约 8km 的“中国民间博物馆之乡”，古莲桥、陈妃水冢，比周庄更安静原味。',
-        meta:{'特色':'安静水乡、博物馆','车程':'周庄约15min'}, info:'锦溪距周庄仅约 8km，却安静许多，被称为“中国民间博物馆之乡”——古砖瓦博物馆、壶具馆散落水巷。古莲桥倒影、陈妃水冢、沿河茶馆皆宜慢坐。若周庄人多或时间充裕，锦溪是最近的优质备选（周庄打车约 15min）。'},
-      {name:'同里古镇', cat:'文化', lng:120.7300, lat:31.1550,
-        desc:'“醇正水乡”，退思园为世界文化遗产；三桥、珍珠塔、罗星洲，水网更密更幽。',
-        meta:{'特色':'世遗退思园','车程':'周庄约40min'}, info:'同里距周庄约 40min，是另一座完整保存的水乡，退思园为世界文化遗产（江南园林典范）。三桥、珍珠塔、罗星洲（湖中寺）各具意趣，水巷比周庄更密更幽。适合在周庄游毕、赴苏州南之前顺路延展的备选。'}
+      {name:'网师园', cat:'文化', lng:120.6280, lat:31.3050,
+        desc:'苏州最小最精的园林，咫尺乾坤；夜间“网师园夜游”有昆曲评弹实景演出，极为惊艳。',
+        meta:{'特色':'精致园林、夜游','门票':'¥30–40'}, info:'网师园是苏州园林中面积最小却最见功力的一座，亭台水景紧凑雅致，距平江路不远。其“网师园夜游”为实景版昆曲 / 评弹演出（约 19:30 起，¥100 左右），在古园灯下听曲，是 DAY4 园林之外的更高阶备选。白天门票约 ¥30–40。'},
+      {name:'寒山寺', cat:'文化', lng:120.5700, lat:31.2980,
+        desc:'“姑苏城外寒山寺，夜半钟声到客船”。枫桥边的诗意古刹，听一口唐钟、走一走枫桥、看古运河；若想换一种非园林的文化体验可替换留园。',
+        meta:{'特色':'诗意古刹','门票':'¥20','车程':'木渎约30min'}, info:'寒山寺因张继《枫桥夜泊》名扬天下，位于苏州城西枫桥镇，是江南名刹而非园林——黄墙殿宇、寒山钟、碑廊与古运河构成独特诗意，与古典园林形成鲜明反差。距木渎自驾约 30min，门票约 ¥20，建议游玩 1–1.5h，傍晚钟声最有味道。'},
+      {name:'金鸡湖 · 诚品书店', cat:'景点', lng:120.7350, lat:31.3250,
+        desc:'现代苏州的另一面——湖滨步道、摩天轮、音乐喷泉，以及诚品书店的文创与咖啡。',
+        meta:{'特色':'现代苏州、湖滨','车程':'木渎约35min'}, info:'金鸡湖是苏州工业园区的新名片，与古城园林形成反差：湖滨大道散步、看“东方之门”摩天楼、坐摩天轮、傍晚音乐喷泉。诚品书店（大陆首店）集书、文创、咖啡于一体，适合作为园林之外的现代休闲备选，距木渎打车约 35min。'}
     ]}
   ];
 
@@ -1490,7 +1490,7 @@
           <div class="ov-fly-p">3人 ¥${FLIGHT_3} <small>含机建燃油</small></div></div>
         <div class="ov-fly"><span class="ov-fly-k">返程 · MU5220 东航</span>
           <div class="ov-fly-sub">当日 <b>9/29 周二 18:06</b> 苏州南站乘 C3008 → 上海南（约 25min，3 人高铁约 ¥342），转赴浦东 T1（地铁约 1h15min 或打车约 40min）</div>
-          <div class="ov-fly-r"><b>上海浦东 PVG</b> ✈ 太原武宿 <b>TYN</b> → 榆次<br>9/29 周二 21:30 起飞 · 23:55 落地（周庄午后赴苏州南转上海南赴浦东）</div>
+          <div class="ov-fly-r"><b>上海浦东 PVG</b> ✈ 太原武宿 <b>TYN</b> → 榆次<br>9/29 周二 21:30 起飞 · 23:55 落地（园林游毕赴苏州南转上海南赴浦东）</div>
           <div class="ov-fly-p">3人 ¥${RETURN_3} <small>含机建燃油</small></div></div>
       </div>`;
     const hotels = HOTELS.map((h,idx)=>`<div class="ov-hotel" data-hidx="${idx}">
@@ -1506,7 +1506,7 @@
     const weatherHtml = [
       {k:'sh', city:'上海虹桥', icon:'🌙', temp:'23°C', range:'18~27°C', desc:'9/26 傍晚抵达，多云转阴，微风。夜间气温约 20°C，出站穿薄外套即可。', tip:'机场→酒店步行 10min，无需打伞'},
       {k:'sz', city:'苏州 / 木渎', icon:'⛅', temp:'25°C', range:'19~29°C', desc:'9/27–28 白天多云间晴，午后偶有短时阵雨（江南秋典型）。体感舒适，适合古镇漫步与园林游览。', tip:'带把折叠伞，防晒+防阵雨'},
-      {k:'zz', city:'周庄', icon:'🌤️', temp:'24°C', range:'19~28°C', desc:'9/29 上午多云，水乡晨雾散后光线柔和，摇橹船体验最佳。午后转阴但不影响返程。', tip:'清晨水乡有雾，拍照更有氛围'},
+      {k:'zz', city:'周庄', icon:'🌤️', temp:'24°C', range:'19~28°C', desc:'9/28 上午多云，水乡晨雾散后光线柔和，摇橹船体验最佳。午后转阴不影响游程。', tip:'清晨水乡有雾，拍照更有氛围'},
       {k:'ty', city:'太原 / 榆次', icon:'🌤️', temp:'19°C', range:'12~24°C', desc:'9/26 出发及 9/29 返程：北方秋季干燥晴朗，昼夜温差大。白天单衣够、早晚需加外套。', tip:'出发/返回备一件薄外套'}
     ].map(w=>`<div class="w-card" data-wx="${w.k}">
         <div class="w-city">${w.city}</div>
@@ -1839,7 +1839,7 @@
     const WX_CITIES = [
       {k:'sh', name:'上海虹桥', lat:31.34, lon:121.32, trip:'2026-09-26', tip:'机场→酒店步行 10min，无需打伞'},
       {k:'sz', name:'苏州 / 木渎', lat:31.30, lon:120.58, trip:'2026-09-27', tip:'带把折叠伞，防晒+防阵雨'},
-      {k:'zz', name:'周庄', lat:30.90, lon:120.85, trip:'2026-09-29', tip:'清晨水乡有雾，拍照更有氛围'},
+      {k:'zz', name:'周庄', lat:30.90, lon:120.85, trip:'2026-09-28', tip:'清晨水乡有雾，拍照更有氛围'},
       {k:'ty', name:'太原 / 榆次', lat:37.87, lon:112.55, trip:'2026-09-26', tip:'出发/返回备一件薄外套'}
     ];
     const CACHE_KEY = 'sz_wx_v1';
@@ -2336,8 +2336,8 @@
       <div class="pf-route">
         <b>去程</b> 榆次 → 太原武宿 ✈ MU5209 → 上海浦东 T1<br>
         次日 🚄 虹桥 → 苏州南站 · 取车自驾 · 住木渎悦华<br>
-        <b>游玩</b> 虎丘 → 木渎古镇 → 拙政园/苏博/留园 → 平江路评弹 → 周庄水乡<br>
-        <b>返程</b> 周庄 → 苏州南 🚄 上海南 🚇 → 浦东T1 ✈ MU5220 → 太原武宿 → 榆次
+        <b>游玩</b> 虎丘 → 木渎古镇 → 周庄水乡 → 平江路评弹 → 拙政园/苏博/留园<br>
+        <b>返程</b> 园林游毕 → 苏州南 🚄 上海南 🚇 → 浦东T1 ✈ MU5220 → 太原武宿 → 榆次
       </div>
       <div class="pf-budget">
         <div class="pf-bg"><div class="k">✈️ 往返机票</div><div class="v">¥${flightSum.toLocaleString()}</div></div>
